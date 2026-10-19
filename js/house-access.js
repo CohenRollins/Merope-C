@@ -4,6 +4,24 @@
  const $=id=>document.getElementById(id);
  const base='/house-api'; let token='';
  const notice=$('house-access-msg'), login=$('house-login-section'), dash=$('house-dashboard');
+ async function refreshPublicPhotos(){
+   const root=$('house-public-photos');if(!root)return;
+   try{
+     const res=await fetch('/house-api/public-photos',{credentials:'omit',cache:'no-store'});
+     if(!res.ok)throw Error('Gallery unavailable');
+     const photos=await res.json();
+     root.replaceChildren();
+     if(!photos.length){root.append(element('p','No public house photos yet.','smallprint'));return;}
+     for(const p of photos){
+       const tile=element('article',null,'house-public-photo');
+       const img=element('img');img.src=p.url;img.alt=p.caption||'PERC House photo';img.loading='lazy';
+       tile.append(img);
+       if(p.caption)tile.append(element('p',p.caption));
+       root.append(tile);
+     }
+   }catch{root.replaceChildren(element('p','Public photos are temporarily unavailable.','smallprint'));}
+ }
+ refreshPublicPhotos();
  function say(msg){notice.textContent=msg;}
  function element(tag,text,cls){const n=document.createElement(tag);if(text!=null)n.textContent=String(text);if(cls)n.className=cls;return n;}
  async function request(path,data,method='GET'){
@@ -123,10 +141,20 @@
    details.append(element('strong',p.date));
    if(p.tags?.length)details.append(element('p',p.tags.map(t=>'#'+t).join(' ')));
    if(p.caption)details.append(element('p',p.caption));
+   const visibility=element('button',p.public?'Make private':'Share publicly','house-photo-visibility');visibility.type='button';
+   visibility.addEventListener('click',async()=>{
+     if(!confirm(p.public?'Remove this photo from the public PERC House page?':'Make this photo visible to EVERYONE visiting merope-c.com?'))return;
+     try{
+       await request('/photos/visibility',{id:p.id,public:!p.public},'POST');
+       lightbox.close();img.removeAttribute('src');
+       photoMessage.textContent=p.public?'Photo is private again.':'Photo is now public.';
+       await renderPhotos();await refreshPublicPhotos();
+     }catch(e){photoMessage.textContent=e.message;}
+   });details.append(visibility);
    const remove=element('button','Remove photo','house-photo-delete');remove.type='button';
    remove.addEventListener('click',async()=>{
      if(!confirm('Remove this photo from the house album? This cannot be undone without a backup.'))return;
-     try{await request('/photos/delete',{id:p.id},'POST');lightbox.close();img.removeAttribute('src');photoMessage.textContent='Photo removed.';await renderPhotos();}
+     try{await request('/photos/delete',{id:p.id},'POST');lightbox.close();img.removeAttribute('src');photoMessage.textContent='Photo removed.';await renderPhotos();await refreshPublicPhotos();}
      catch(e){photoMessage.textContent=e.message;}
    });details.append(remove);lightbox.showModal();
  }
