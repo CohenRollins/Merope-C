@@ -319,3 +319,24 @@ body>main,body>footer{z-index:1;position:relative}
 .personal-concept .personal-concept-stage .personal-concept-clouds{width:112%;right:-8%;bottom:3px}
 .personal-concept .personal-concept-stage::after{height:70px;left:-15%;right:-12%}
 }
+
+/* Clouds integrated with the personal hero: larger, pulled toward the text. */
+@media (min-width:901px){
+  .personal-concept .personal-concept-stage .personal-concept-clouds{
+    width:clamp(830px,76vw,1170px);
+    right:-10%;
+    bottom:-36px;
+    max-height:none;
+  }
+  .personal-concept .personal-concept-stage::after{
+    bottom:0;
+    transform:rotate(-5deg);
+  }
+}
+@media (min-width:571px) and (max-width:900px){
+  .personal-concept .personal-concept-stage .personal-concept-clouds{
+    width:min(132%,750px);
+    right:2%;
+    bottom:0;
+  }
+}
