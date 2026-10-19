@@ -61,7 +61,7 @@
       radius:1.05+rng(i+488)*1.8,
       speed:.035+rng(i+115)*.075,
       blink:rng(i+809)*6.283,
-      rate:.00065+rng(i+18)*.0011,
+      rate:.0012+rng(i+18)*.0024,
       bright:rng(i+391)>.42,
       cross:rng(i+74)>.82,
       hue:rng(i+43)>.57?'175,218,255':'225,241,255'
@@ -74,9 +74,9 @@
       const x=s.x+(reduced.matches?0:Math.sin(time*.0001+s.blink)*3.5);
       const drift=reduced.matches?0:time*s.speed*.045;
       const y=((s.y+drift-scrolled*(s.bright?.135:.065))%(h+30)+(h+30))%(h+30)-15;
-      const wave=reduced.matches?.74:(.74+.22*Math.sin(time*s.rate+s.blink));
-      const flash=reduced.matches?0:Math.pow(Math.max(0,Math.sin(time*(s.rate*.74)+s.blink)),14);
-      const a=Math.min(.95,(s.bright?.80:.49)*wave+(s.cross?.85:0)*flash);
+      const wave=reduced.matches?.82:(.55+.43*Math.sin(time*s.rate+s.blink));
+      const flash=reduced.matches?0:Math.pow(Math.max(0,Math.sin(time*(s.rate*.82)+s.blink)),9);
+      const a=Math.min(1,(s.bright?.92:.70)*wave+(s.cross?.95:0)*flash);
       ctx.beginPath();ctx.fillStyle=`rgba(${s.hue},${a.toFixed(3)})`;
       ctx.shadowColor=s.bright?"#8acaff":"#c9e8ff";ctx.shadowBlur=s.cross?4+flash*15:2;
       ctx.arc(x,y,s.radius+(s.cross?flash*1.15:0),0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
