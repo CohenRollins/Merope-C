@@ -31,6 +31,13 @@
  async function renderData(){
   const details=$('house-details');details.replaceChildren();
   const info=await request('/info');
+  if(Array.isArray(info.rules) && info.rules.length){
+    const card=element('article',null,'access-detail access-rules');
+    card.append(element('h3','House rules'));
+    const list=element('ol');
+    for(const rule of info.rules){if(typeof rule==='string' && rule.trim())list.append(element('li',rule));}
+    card.append(list);details.append(card);
+  }
   addField(details,'Address',info.address);addField(details,'Phone numbers',info.contacts,'contacts');
   addField(details,'Wi-Fi network',info.wifi_name);addField(details,'Wi-Fi password',info.wifi_password);
   addField(details,'Apple Maps',info.apple_maps,'link');addField(details,'Google Maps',info.google_maps,'link');
