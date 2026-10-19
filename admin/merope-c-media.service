@@ -1,0 +1,21 @@
+[Unit]
+Description=Merope-C media bridge (localhost only)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=cococr
+Group=cococr
+WorkingDirectory=/home/cococr/Merope-C
+ExecStart=/usr/bin/python3 /home/cococr/Merope-C/admin/media_server.py run
+Restart=on-failure
+RestartSec=4
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target

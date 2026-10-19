@@ -1,0 +1,14 @@
+# Optional Jellyfin server. Requires Docker Engine and Compose plugin on Polaris.
+# Usage: MEDIA_UID=$(id -u) MEDIA_GID=$(id -g) docker compose -f media/docker-compose.yml up -d
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: merope-jellyfin
+    user: "${MEDIA_UID:-1000}:${MEDIA_GID:-1000}"
+    ports:
+      - "127.0.0.1:8096:8096"
+    volumes:
+      - "${HOME}/.local/share/merope-c/jellyfin/config:/config"
+      - "${HOME}/.local/share/merope-c/jellyfin/cache:/cache"
+      - "${HOME}/Media/Anime:/media/anime:ro"
+    restart: unless-stopped

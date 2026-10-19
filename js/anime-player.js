@@ -6,6 +6,8 @@
   const PROGRESS='merope_anime_player_progress_v1';
   const byId=id=>document.getElementById(id);
   let config={titles:{}};
+  let mediaBackend={}; // Source lists served from Polaris; no credentials reach the browser.
+  let backendStatus={};
   let local={};let progress={};let current=null;let hls=null;
   const safe=raw=>{try{const u=new URL(raw,location.href);return (u.protocol==='https:'||u.protocol==='http:')?u.href:'';}catch{return '';}};
   const stored=key=>{try{let x=JSON.parse(localStorage.getItem(key));return x&&typeof x==='object'&&!Array.isArray(x)?x:{};}catch{return {}};};
@@ -14,10 +16,24 @@
   const saveProgress=()=>{try{localStorage.setItem(PROGRESS,JSON.stringify(progress));}catch{}};
   const el=(tag,cls,text)=>{let e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=String(text);return e;};
   fetch('../data/anime-sources.json',{cache:'no-store'}).then(r=>r.ok?r.json():{}).then(x=>{if(x&&typeof x.titles==='object')config=x; if(current)render();}).catch(()=>{});
+  async function loadBackend(titleId){
+    const id=String(titleId);
+    try{
+      const response=await fetch('../api/media/sources?mal_id='+encodeURIComponent(id),{cache:'no-store'});
+      if(!response.ok)throw new Error('Media API returned '+response.status);
+      const result=await response.json();
+      mediaBackend[id]=Array.isArray(result.sources)?result.sources:[];
+      backendStatus[id]='connected';
+    }catch{
+      mediaBackend[id]=[];
+      backendStatus[id]='unavailable';
+    }
+    if(current && String(current.mal_id)===id)render();
+  }
   function sources(){
     if(!current)return [];
     const id=String(current.mal_id);
-    const raw=[...(Array.isArray(config.titles?.[id])?config.titles[id]:[]),...(Array.isArray(local[id])?local[id]:[])];
+    const raw=[...(Array.isArray(mediaBackend[id])?mediaBackend[id]:[]),...(Array.isArray(config.titles?.[id])?config.titles[id]:[]),...(Array.isArray(local[id])?local[id]:[])];
     return raw.filter(x=>x&&Number.isInteger(Number(x.season))&&Number.isInteger(Number(x.episode))&&x.episode>=0&&safe(x.url))
       .map(x=>({...x,season:Number(x.season),episode:Number(x.episode),audio:String(x.audio||'sub').toLowerCase(),type:String(x.type||'embed').toLowerCase(),label:String(x.label||'Source').slice(0,80)}));
   }
@@ -68,15 +84,26 @@
       const opts=[...new Set(items.filter(x=>x.season===Number(season.value)&&x.episode===Number(episode.value)).map(x=>x.audio))];
       audio.replaceChildren();for(const k of opts){let o=el('option','',k==='dub'?'Dub':k==='sub'?'Sub':k==='original'?'Original':k);o.value=k;audio.append(o);}updateServers();
     }
-    function updateServers(){
-      const opts=items.filter(x=>x.season===Number(season.value)&&x.episode===Number(episode.value)&&x.audio===audio.value);
-      server.replaceChildren();for(const [i,x] of opts.entries()){let o=el('option','',x.label||('Source '+(i+1)));o.value=i;server.append(o);}
-      stage.replaceChildren();const x=opts[Number(server.value)||0];if(x)play(x,stage,status);
+    function currentOptions(){return items.filter(x=>x.season===Number(season.value)&&x.episode===Number(episode.value)&&x.audio===audio.value);}
+    function playSelected(){
+      const opts=currentOptions();stage.replaceChildren();status.textContent='';
+      const x=opts[Number(server.value)||0];if(x)play(x,stage,status);
     }
-    season.addEventListener('change',updateEpisodes);episode.addEventListener('change',updateAudio);audio.addEventListener('change',updateServers);server.addEventListener('change',updateServers);
+    function updateServers(){
+      const opts=currentOptions();server.replaceChildren();
+      for(const [i,x] of opts.entries()){let o=el('option','',x.label||('Source '+(i+1)));o.value=i;server.append(o);}
+      playSelected();
+    }
+    season.addEventListener('change',updateEpisodes);episode.addEventListener('change',updateAudio);audio.addEventListener('change',updateServers);server.addEventListener('change',playSelected);
     const feedback=el('p','anime-source-message');
-    if(items.length){updateEpisodes();bar.append();formBox.append(bar,stage,status);root.append(formBox);}
-    else root.append(el('p','anime-detail-muted','No full episodes are linked to this title yet. You can add a source below, and the player will appear here.'));
+    if(items.length){updateEpisodes();formBox.append(bar,stage,status);root.append(formBox);}
+    else root.append(el('p','anime-detail-muted',
+      backendStatus[String(current.mal_id)]==='unavailable'
+      ? 'No sources found. The Polaris media API is not connected here yet; you can still add a link below.'
+      : 'No full episodes linked to this title yet. Add an MP4/WebM in your Polaris library or configure a Jellyfin item.'));
+    if(backendStatus[String(current.mal_id)]==='connected' && items.length){
+      root.append(el('p','anime-media-connection','Polaris media library connected'));
+    }
     const details=document.createElement('details');details.className='anime-add-source';
     const summary=el('summary','', 'Add a playback link');details.append(summary);
     const help=el('p','smallprint','Choose a supported direct video (MP4, WebM, HLS) or an embeddable player URL. This saves the link in your browser only. Shared sources go in data/anime-sources.json on Polaris.');details.append(help);
@@ -92,5 +119,5 @@
       const id=String(current.mal_id);local[id]??=[];local[id].push({season:Number(d.get('season')),episode:Number(d.get('episode')),audio:String(d.get('audio')),label:String(d.get('label')||'My source'),type:String(d.get('type')),url});remember();render();});
     details.append(form);root.append(details);
   }
-  window.meropePlayer={open(a){current=a;render();},close(){stop();current=null;}};
+  window.meropePlayer={open(a){current=a;render();void loadBackend(a.mal_id);},close(){stop();current=null;}};
 })();
