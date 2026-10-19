@@ -8,6 +8,7 @@
   const byId = id => document.getElementById(id);
   const KEY = 'merope_anime_player_links_v1';
   const PROGRESS = 'merope_anime_player_progress_v1';
+  const HISTORY = 'merope_anime_recent_v1';
   const PREFS = 'merope_anime_player_selections_v2';
   const OVERRIDES = 'merope_anime_id_overrides_v1';
   const el = (tag, cls='', content) => {
@@ -27,7 +28,7 @@
   };
   const validId = x => /^\d{1,10}$/.test(String(x||''));
   const validImdb = x => /^tt\d{5,12}$/.test(String(x||''));
-  let config={titles:{}}, local=stored(KEY), progress=stored(PROGRESS), prefs=stored(PREFS);
+  let config={titles:{}}, local=stored(KEY), progress=stored(PROGRESS), prefs=stored(PREFS), history=stored(HISTORY);
   let overrides=stored(OVERRIDES), current=null, player=null, hls=null;
   const backend={}, status={}, identities={};
   const AUDIO=[['sub','Sub'],['dub','Dub'],['original','Original']];
@@ -86,8 +87,16 @@
       frame.append(video);
       const key=String(current.mal_id)+'/'+x.season+'/'+x.episode+'/'+x.audio+'/'+url;
       video.addEventListener('loadedmetadata',()=>{const t=Number(progress[key]||0);if(t>10&&t<video.duration-10)video.currentTime=t;});
-      video.addEventListener('timeupdate',()=>{if(Number.isFinite(video.currentTime)&&Math.floor(video.currentTime)%5===0){progress[key]=Math.floor(video.currentTime);save(PROGRESS,progress);}});
-      video.addEventListener('ended',()=>{progress[key]=0;save(PROGRESS,progress);});
+      video.addEventListener('timeupdate',()=>{
+        if(Number.isFinite(video.currentTime) && video.currentTime>=5 && Date.now()-(video._lastSave||0)>5000){
+          video._lastSave=Date.now();
+          progress[key]=Math.floor(video.currentTime);save(PROGRESS,progress);
+          history[String(current.mal_id)]={mal_id:Number(current.mal_id),title:String(current.title||'Anime'),type:String(current.type||'TV'),season:x.season,episode:x.episode,audio:x.audio,seconds:Math.floor(video.currentTime),duration:Number.isFinite(video.duration)?Math.floor(video.duration):0,updatedAt:Date.now()};
+          save(HISTORY,history);
+          window.dispatchEvent(new Event('merope:watch-progress'));
+        }
+      });
+      video.addEventListener('ended',()=>{progress[key]=0;save(PROGRESS,progress);delete history[String(current.mal_id)];save(HISTORY,history);window.dispatchEvent(new Event('merope:watch-progress'));});
       video.addEventListener('error',()=>{note.textContent='This source could not play. Try another source.';});
       if(x.type==='hls'&&!video.canPlayType('application/vnd.apple.mpegurl')){
         if(window.Hls?.isSupported()){hls=new Hls();hls.loadSource(url);hls.attachMedia(video);}
