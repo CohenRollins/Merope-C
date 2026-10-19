@@ -214,3 +214,31 @@ body>main,body>footer{z-index:1;position:relative}
 .device-flip-back p{color:#b8d0e0}
 .device-flip-back .smallprint{font-size:.8rem;color:#86cbf6}
 @media(prefers-reduced-motion:reduce){.device-flip-inner{transition:none}}
+
+/* Personal landing refresh: featured OC + distinct destinations. My Circle left untouched. */
+.personal-hub .personal-hero{grid-template-columns:minmax(0,1fr) minmax(300px,.78fr);gap:clamp(24px,5vw,72px);align-items:center}
+.personal-hub .personal-hero h1{font-size:clamp(3.9rem,7vw,6.5rem);line-height:1.03;letter-spacing:-.06em;margin:14px 0 23px}
+.personal-hub .personal-hero .lead{max-width:610px}
+.personal-clouds-hero{height:500px;background:radial-gradient(ellipse at 50% 42%,#204d71bb,#0b1928 58%,#06101a 100%);border:1px solid #416b89;box-shadow:0 24px 70px #0008,inset 0 0 65px #65baff18}
+.personal-clouds-hero::before{content:'';position:absolute;inset:8% 9%;border:1px solid #77b9ed4a;border-radius:50%;transform:scaleX(.85)}
+.personal-clouds-hero img{position:relative;z-index:1;height:100%;width:100%;object-fit:contain;object-position:center bottom;padding:15px 12px 37px;filter:drop-shadow(0 18px 20px #0009)}
+.personal-clouds-star{position:absolute;top:10%;right:13%;font-size:2.5rem;color:#a8deff;text-shadow:0 0 24px #74c0ff}
+.personal-clouds-caption{position:absolute;bottom:0;left:0;right:0;background:#06111cea;z-index:2;text-align:center;padding:11px;color:#afd8f1;font-size:.7rem;letter-spacing:.2em}
+.personal-link-grid{grid-template-columns:repeat(12,minmax(0,1fr));gap:16px}
+.personal-link-grid .personal-link{grid-column:span 4;min-height:248px;position:relative;overflow:hidden;isolation:isolate;transition:transform .25s,border-color .25s,box-shadow .25s}
+.personal-link-grid .personal-link:nth-child(1){grid-column:span 7;background:radial-gradient(circle at 90% 18%,#447bac5d,transparent 55%),linear-gradient(130deg,#112d45,#0a1420)}
+.personal-link-grid .personal-link:nth-child(2){grid-column:span 5;background:radial-gradient(circle at 20% 0%,#7e597454,transparent 60%),#191827}
+.personal-link-grid .personal-link:nth-child(3){grid-column:span 5;background:radial-gradient(circle at 95% 90%,#52688e70,transparent 65%),#111b30}
+.personal-link-grid .personal-link:nth-child(4){grid-column:span 7;background:radial-gradient(circle at 100% 10%,#36779080,transparent 55%),#0c1c28}
+.personal-link-grid .personal-link:nth-child(5){background:radial-gradient(circle at 90% 10%,#9c63704d,transparent 60%),#1c1521}
+.personal-link-grid .personal-link:nth-child(6){background:radial-gradient(circle at 90% 10%,#537aa75a,transparent 60%),#0f2130}
+.personal-link-grid .personal-link:nth-child(7){background:radial-gradient(circle at 90% 10%,#97805d52,transparent 60%),#201b17}
+.personal-link-grid .personal-link::after{content:'↗';position:absolute;right:23px;top:17px;font-size:1.5rem;color:#b2e2ff70;transition:transform .25s}
+.personal-link-grid .personal-link:hover{transform:translateY(-7px);box-shadow:0 22px 40px #0009;border-color:#8bd0ff}
+.personal-link-grid .personal-link:hover::after{transform:translate(4px,-4px)}
+.personal-link-grid .personal-link-mark{display:grid;place-items:center;width:59px;height:59px;border-radius:17px;background:#a8dbff18;border:1px solid #b0dfff3d;font-size:2rem;margin-bottom:auto}
+.personal-link-grid .personal-link h3{margin:22px 0 7px}
+#art-data-source{display:inline-flex;align-items:center;border:1px solid #385b73;border-radius:999px;padding:7px 12px;color:#afd9f1;font-size:.78rem;background:#0d2132;margin-bottom:14px}
+#art-data-source[data-source='static']{color:#ffd5a3;border-color:#916c42;background:#281c12}
+@media(max-width:830px){.personal-hub .personal-hero{grid-template-columns:1fr}.personal-clouds-hero{max-width:550px;width:100%;height:410px}.personal-link-grid .personal-link{grid-column:span 6!important}}
+@media(max-width:530px){.personal-link-grid .personal-link{grid-column:span 12!important;min-height:215px}.personal-hub .personal-hero h1{font-size:3.65rem}}
