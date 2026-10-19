@@ -28,7 +28,7 @@ def main():
         if authenticated:
             if not key:
                 raise ValueError("JELLYFIN_API_KEY is missing")
-            headers["X-Emby-Token"] = key
+            headers["Authorization"] = f'MediaBrowser Token="{key}"'
         req = urllib.request.Request(base + route, headers=headers)
         with urllib.request.urlopen(req, timeout=5) as resp:
             return json.load(resp)
@@ -53,6 +53,8 @@ def main():
             print("Library:", str(lib.get("Name", "unnamed"))[:72], "| type:", str(lib.get("CollectionType", "unspecified"))[:32])
     except (urllib.error.URLError, TimeoutError, ValueError, json.JSONDecodeError) as exc:
         print("Authenticated library access: failed. Error class:", type(exc).__name__)
+        if isinstance(exc, urllib.error.HTTPError):
+            print("HTTP status:", exc.code)
         return 1
     print("Readiness: local metadata connection confirmed; no streaming endpoint enabled.")
     return 0
