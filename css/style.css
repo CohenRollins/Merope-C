@@ -242,3 +242,24 @@ body>main,body>footer{z-index:1;position:relative}
 #art-data-source[data-source='static']{color:#ffd5a3;border-color:#916c42;background:#281c12}
 @media(max-width:830px){.personal-hub .personal-hero{grid-template-columns:1fr}.personal-clouds-hero{max-width:550px;width:100%;height:410px}.personal-link-grid .personal-link{grid-column:span 6!important}}
 @media(max-width:530px){.personal-link-grid .personal-link{grid-column:span 12!important;min-height:215px}.personal-hub .personal-hero h1{font-size:3.65rem}}
+
+
+/* Personal concept hero: keeps a dedicated character-art slot without shipping placeholder art. */
+.personal-concept .section-crumb{padding-top:30px}
+.personal-concept .personal-concept-hero{grid-template-columns:minmax(0,1.18fr) minmax(0,.92fr);gap:clamp(20px,4vw,62px);min-height:590px;align-items:center;padding:45px 0 82px}
+.personal-concept .personal-concept-hero h1{font-size:clamp(3.25rem,5.7vw,5.7rem);line-height:1.07;letter-spacing:-.065em;margin:0 0 34px}
+.personal-concept .personal-concept-hero h1 em{color:#87d5ff;font-style:normal}
+.personal-concept .personal-concept-hero .lead{font-size:1.14rem;max-width:640px;line-height:1.7}
+.personal-concept-stage{position:relative;height:520px;min-width:0;isolation:isolate}
+.personal-concept-orbit{position:absolute;inset:18px 20px 88px 0;border:1px solid #62b9f3aa;border-radius:24px;background:radial-gradient(ellipse at center,#15355bba,#071525ea 68%);box-shadow:inset 0 0 42px #6cbeff11,0 18px 70px #0006;overflow:hidden;display:grid;place-items:center}
+.personal-concept-orbit::before,.personal-concept-orbit::after{content:"";position:absolute;width:72%;height:65%;border:1px solid #58abedb7;border-radius:50%;transform:rotate(-8deg)}
+.personal-concept-orbit::after{width:55%;height:45%;border-color:#4e97cb9c}
+.personal-concept-center{z-index:1;color:#f0faff;font-weight:800;font-size:clamp(1.5rem,2.5vw,2.55rem);letter-spacing:-.025em;text-shadow:0 0 22px #559fe9}
+.personal-concept-center span{color:#83d3ff;margin-left:4px}
+.personal-concept-label{position:absolute;z-index:2;font-size:.68rem;letter-spacing:.16em;font-weight:800;color:#d3ebff}
+.personal-concept-label.top-left{top:20%;left:10%}.personal-concept-label.top-right{top:23%;right:15%}.personal-concept-label.bottom-left{bottom:23%;left:11%}.personal-concept-label.bottom-right{bottom:21%;right:14%}
+.personal-art-placeholder{position:absolute;z-index:3;right:-4%;bottom:-18px;width:min(72%,360px);height:410px;border:2px dashed #80cdf5a8;border-radius:45% 45% 12px 12px / 26% 26% 12px 12px;background:linear-gradient(155deg,#1f44628c,#091627e8);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:11px;padding:25px;text-align:center;color:#e6f6ff;box-shadow:0 14px 50px #0007;transform:rotate(2deg)}
+.personal-art-placeholder strong{font-size:1.25rem}.personal-art-placeholder span:not(.placeholder-spark){font-size:.84rem;color:#b1d6ef}.personal-art-placeholder small{font-size:.7rem;letter-spacing:.08em;color:#9dbbd0}.placeholder-spark{font-size:3rem;color:#8bd9ff;text-shadow:0 0 30px #55a9ed}
+.personal-concept .sectionhead{border-top:1px solid #325f8c80;padding-top:34px}
+@media(max-width:900px){.personal-concept .personal-concept-hero{grid-template-columns:1fr;padding:28px 0 60px;gap:20px}.personal-concept-stage{max-width:650px;width:100%;margin:0 auto}.personal-concept .personal-concept-hero h1{font-size:clamp(3rem,9vw,5rem)}}
+@media(max-width:570px){.personal-concept-stage{height:390px}.personal-concept-orbit{inset:0 6px 65px}.personal-art-placeholder{height:300px;width:65%;right:0;bottom:0}.personal-concept-label{font-size:.53rem}.personal-concept .personal-concept-hero h1{font-size:clamp(2.65rem,11vw,3.5rem)}}
