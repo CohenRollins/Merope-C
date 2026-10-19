@@ -1,0 +1,1 @@
+Private Python + SQLite gallery editor. Review the deployment instructions in the repository's root README. Run `python3 admin/server.py init` once on Polaris, then enable the included systemd service. Only access `http://localhost:8765/admin` through SSH port forwarding. Never publish port 8765 or admin routes via Nginx.
