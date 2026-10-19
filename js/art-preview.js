@@ -39,7 +39,7 @@
    clearInterval(ticker);
    if(items.length>1&&!reduced)ticker=setInterval(()=>{
      if(!document.hidden && !area.matches(':hover') && !area.matches(':focus-within'))navigate(1);
-   },6500);
+   },12000);
  }
  async function load(){
    let data=null;
