@@ -281,7 +281,7 @@ class MediaHandler(BaseHTTPRequestHandler):
         if not base or not token:return self.send_json(503,{'error':'Jellyfin not configured'})
         # Item ID is a 32-character hexadecimal identifier from private admin config.
         url=base+'/Videos/'+entry['item_id']+'/stream?static=true'
-        headers={'X-Emby-Token':token,'Accept-Encoding':'identity','User-Agent':'Merope-C-Media/0.11'}
+        headers={'Authorization': f'MediaBrowser Token="{token}"','Accept-Encoding':'identity','User-Agent':'Merope-C-Media/0.11'}
         if self.headers.get('Range'):headers['Range']=self.headers['Range']
         req=urllib.request.Request(url,headers=headers,method=self.command)
         opener=urllib.request.build_opener(NoRedirect)
@@ -322,7 +322,7 @@ def jellyfin_list(conf, search=''):
         raise ValueError('Configure the local Jellyfin API key in your private server.json first')
     qs=urllib.parse.urlencode({'Recursive':'true','IncludeItemTypes':'Episode,Movie',
                                'SearchTerm':search,'Limit':'40','Fields':'Path'})
-    req=urllib.request.Request(base+'/Items?'+qs,headers={'X-Emby-Token':token,'Accept':'application/json'},method='GET')
+    req=urllib.request.Request(base+'/Items?'+qs,headers={'Authorization': f'MediaBrowser Token="{token}"','Accept':'application/json'},method='GET')
     with urllib.request.build_opener(NoRedirect).open(req,timeout=15) as response:
         data=json.load(response)
     for item in data.get('Items',[]):
