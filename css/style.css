@@ -280,3 +280,9 @@ body>main,body>footer{z-index:1;position:relative}
 .personal-concept-stage .personal-concept-clouds{position:absolute;z-index:4;display:block;right:-6%;bottom:-18px;width:min(89%,520px);height:auto;max-height:540px;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 19px 23px #000b);pointer-events:none}
 @media(max-width:900px){.personal-concept-stage .personal-concept-clouds{width:min(80%,490px);right:0;max-height:510px}}
 @media(max-width:570px){.personal-concept-stage .personal-concept-clouds{width:85%;right:-3%;bottom:-6px;max-height:370px}}
+
+/* Seated Clouds reference: extend across the right-side orbit without clipping. */
+.personal-concept-stage{isolation:isolate;overflow:visible!important}
+.personal-concept-stage .personal-concept-clouds{right:-11%;bottom:-45px;width:min(120%,710px);max-height:580px;height:auto;object-fit:contain;object-position:right bottom;filter:drop-shadow(0 14px 25px #000a)}
+@media(max-width:900px){.personal-concept-stage .personal-concept-clouds{right:-3%;bottom:-20px;width:min(110%,620px);max-height:510px}}
+@media(max-width:570px){.personal-concept-stage .personal-concept-clouds{right:-5%;bottom:-10px;width:110%;max-height:400px}}
