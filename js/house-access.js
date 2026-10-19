@@ -11,16 +11,29 @@
      if(!res.ok)throw Error('Gallery unavailable');
      const photos=await res.json();
      root.replaceChildren();
-     if(!photos.length){root.append(element('p','No public house photos yet.','smallprint'));return;}
-     for(const p of photos){
-       const tile=element('article',null,'house-public-photo');
+     if(!photos.length){root.append(element('p','No public photos yet.','smallprint'));return;}
+     for(const p of photos.slice(0,3)){
+       const tile=element('button',null,'house-public-photo');
+       tile.type='button';tile.setAttribute('aria-label','Open public house photo'+(p.caption?': '+p.caption:''));
        const img=element('img');img.src=p.url;img.alt=p.caption||'PERC House photo';img.loading='lazy';
-       tile.append(img);
-       if(p.caption)tile.append(element('p',p.caption));
+       const detail=element('span',p.caption||'View photo','house-public-photo-caption');
+       tile.append(img,detail);
+       tile.addEventListener('click',()=>showPublicPhoto(p));
        root.append(tile);
      }
    }catch{root.replaceChildren(element('p','Public photos are temporarily unavailable.','smallprint'));}
  }
+ function showPublicPhoto(p){
+   const dialog=$('house-public-lightbox');if(!dialog)return;
+   const img=$('house-public-full');img.src=p.url;img.alt=p.caption||'PERC House photo';
+   $('house-public-description').textContent=p.caption||'No description provided.';
+   $('house-public-date').textContent=p.date?new Date(p.date+'T12:00:00').toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'}):'Date not specified';
+   const tags=$('house-public-tags');tags.replaceChildren();
+   for(const t of (Array.isArray(p.tags)?p.tags:[])){tags.append(element('span','#'+t,'house-public-tag'));}
+   dialog.showModal();
+ }
+ const publicDialog=$('house-public-lightbox');
+ if(publicDialog){$('house-public-close').addEventListener('click',()=>publicDialog.close());publicDialog.addEventListener('click',e=>{if(e.target===publicDialog)publicDialog.close()});}
  refreshPublicPhotos();
  setInterval(refreshPublicPhotos, 30000);
  function say(msg){notice.textContent=msg;}
