@@ -70,6 +70,9 @@ def init():
     with connect() as c:
         c.execute("CREATE TABLE IF NOT EXISTS photos (id TEXT PRIMARY KEY, date TEXT NOT NULL, caption TEXT NOT NULL DEFAULT '', tags TEXT NOT NULL DEFAULT '[]', filename TEXT NOT NULL, mime TEXT NOT NULL, bytes INTEGER NOT NULL, created INTEGER NOT NULL)")
         c.execute('CREATE TABLE IF NOT EXISTS visits (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, date TEXT NOT NULL, note TEXT NOT NULL DEFAULT "", created INTEGER NOT NULL)')
+    with connect() as c:
+        cols={row['name'] for row in c.execute('PRAGMA table_info(photos)')}
+        if 'public' not in cols:c.execute('ALTER TABLE photos ADD COLUMN public INTEGER NOT NULL DEFAULT 0')
     os.chmod(DB,0o600)
 
 def connect():
@@ -99,6 +102,9 @@ def init_photos():
     os.chmod(PHOTOS,0o700)
     with connect() as c:
         c.execute("CREATE TABLE IF NOT EXISTS photos (id TEXT PRIMARY KEY, date TEXT NOT NULL, caption TEXT NOT NULL DEFAULT '', tags TEXT NOT NULL DEFAULT '[]', filename TEXT NOT NULL, mime TEXT NOT NULL, bytes INTEGER NOT NULL, created INTEGER NOT NULL)")
+    with connect() as c:
+        cols={row['name'] for row in c.execute('PRAGMA table_info(photos)')}
+        if 'public' not in cols:c.execute('ALTER TABLE photos ADD COLUMN public INTEGER NOT NULL DEFAULT 0')
     os.chmod(DB,0o600)
 
 class Server(BaseHTTPRequestHandler):
@@ -176,10 +182,21 @@ class Server(BaseHTTPRequestHandler):
             except (OSError,json.JSONDecodeError):return self.respond(500,{'error':'Private info not configured.'})
             allowed={k:info.get(k,DEFAULT[k]) for k in DEFAULT}
             return self.respond(200,allowed)
+        if path=='/house-api/public-photos':
+            with connect() as c:
+                rows=c.execute('SELECT id,date,caption FROM photos WHERE public=1 ORDER BY date DESC,created DESC LIMIT 100').fetchall()
+            return self.respond(200,[{'id':r['id'],'date':r['date'],'caption':r['caption'],'url':'/house-api/public-photos/media/'+r['id']} for r in rows])
+        if path.startswith('/house-api/public-photos/media/'):
+            ident=path.rsplit('/',1)[-1]
+            if not re.fullmatch(r'[a-f0-9]{32}',ident):return self.respond(404,{'error':'Not found'})
+            with connect() as c:
+                row=c.execute('SELECT id FROM photos WHERE id=? AND public=1',(ident,)).fetchone()
+            if not row:return self.respond(404,{'error':'Not found'})
+            return self.send_photo(ident)
         if path=='/house-api/photos':
             if not self.require_auth():return
-            with connect() as c:rows=c.execute('SELECT id,date,caption,tags,created FROM photos ORDER BY date DESC,created DESC LIMIT 500').fetchall()
-            return self.respond(200,[{'id':r['id'],'date':r['date'],'caption':r['caption'],'tags':json.loads(r['tags']),'url':'/house-api/photos/media/'+r['id']} for r in rows])
+            with connect() as c:rows=c.execute('SELECT id,date,caption,tags,created,public FROM photos ORDER BY date DESC,created DESC LIMIT 500').fetchall()
+            return self.respond(200,[{'id':r['id'],'date':r['date'],'caption':r['caption'],'tags':json.loads(r['tags']),'url':'/house-api/photos/media/'+r['id'],'public':bool(r['public'])} for r in rows])
         if path.startswith('/house-api/photos/media/'):
             if not self.require_auth():return
             return self.send_photo(path.rsplit('/',1)[-1])
@@ -234,6 +251,16 @@ class Server(BaseHTTPRequestHandler):
                     (PHOTOS/filename).unlink(missing_ok=True)
                     raise
                 return self.respond(200,{'ok':True,'id':ident})
+            if path=='/house-api/photos/visibility':
+                if not self.require_auth(True):return
+                d=self.content()
+                ident=str(d.get('id',''))
+                public=d.get('public')
+                if not re.fullmatch(r'[a-f0-9]{32}',ident) or type(public) is not bool:raise ValueError('Invalid photo visibility')
+                with connect() as c:
+                    cursor=c.execute('UPDATE photos SET public=? WHERE id=?',(int(public),ident))
+                    if cursor.rowcount==0:raise ValueError('Photo not found')
+                return self.respond(200,{'ok':True})
             if path=='/house-api/photos/delete':
                 if not self.require_auth(True):return
                 ident=str(self.content().get('id',''))
