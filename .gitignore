@@ -5,3 +5,14 @@ Thumbs.db
 !.env.example
 node_modules/
 __pycache__/
+
+# Private source material and working documents
+IMPORTANT/
+all art/
+Comms/
+*.psd
+*.pdn
+*.clip
+*.docx
+*.xlsx
+*.pdf

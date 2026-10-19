@@ -1,8 +1,9 @@
-// Keep this file small and framework-free for easy web-development coursework reuse.
-document.querySelectorAll('[data-filter]').forEach(button => {
+// Merope-C: small, framework-free gallery filter.
+const filterButtons = document.querySelectorAll('[data-filter]');
+filterButtons.forEach(button => {
   button.addEventListener('click', () => {
     const selected = button.dataset.filter;
-    document.querySelectorAll('[data-filter]').forEach(b => b.setAttribute('aria-pressed', String(b === button)));
+    filterButtons.forEach(b => b.setAttribute('aria-pressed', String(b === button)));
     document.querySelectorAll('[data-category]').forEach(card => {
       card.hidden = selected !== 'all' && card.dataset.category !== selected;
     });

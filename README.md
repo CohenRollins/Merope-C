@@ -1,34 +1,21 @@
-# Personal Hub — starter
+# Merope-C — personal website
 
-A no-build, mobile-responsive personal website starter for GitHub Pages. Pages: Home, Art, Lore, PERC Bot, Anime, Twitch, and Anti-Glonk.
+Merope-C is a static personal site (HTML, CSS and JavaScript) hosted on the Polaris Ubuntu server with Nginx.
 
-## Run locally
+## Pages
+- Home, art gallery, lore, PERC Bot, anime, socials, Anti-Glonk
+- The academic/professional portfolio is intentionally **not** developed here. It will be handled separately at the pace of the web-development course.
 
-Open `index.html` in your browser, or run a basic local server from this folder:
+## Art
+- Images in `assets/art/` are web-optimized review copies.
+- Crosschecked image hashes from `Comms.zip` against `all art.zip` so we can identify commissions without assuming ownership of everything in the main archive.
+- `ART_CREDITS_TO_CONFIRM.csv` lists the selected pieces for artist credit and publishing-permission review.
+- Do not publish unverified commissions or works created by others without permission and attribution.
 
-```powershell
-py -m http.server 8000
+## Deploy to Polaris (manual, after commit and push)
+```bash
+cd ~/Merope-C
+git pull --ff-only
+sudo cp -a index.html css js pages assets /var/www/merope-c/
 ```
-
-Then open `http://localhost:8000/`. Stop with Ctrl+C.
-
-## Publish
-
-1. Create a public GitHub repository named `personal-hub` (no need to initialize it if publishing by pushing the files).
-2. Add these files to the repository using GitHub Desktop, commit, and push to `main`.
-3. In GitHub: Settings → Pages → Deploy from a branch → `main` → `/(root)` → Save.
-4. Visit `https://YOUR_USERNAME.github.io/personal-hub/` after GitHub finishes deploying.
-
-Links are relative, so they work both locally and on project GitHub Pages URLs.
-
-## What to customize
-
-- Site brand `YOURHUB` in each HTML page.
-- Replace hero artwork placeholder with an approved, optimized illustration.
-- Add artist credits, permission notes and relevant links to the gallery.
-- Update contact, Twitch, GitHub and social links once ready.
-- Develop second academic site in a separate `class-portfolio` repository and cross-link it.
-
-## Future architecture
-
-Keep private Jellyfin, Immich, file storage, bot tokens and databases off GitHub Pages. A future authenticated backend can provide *approved* public bot data independently.
+Nginx normally does not need reloading for static file changes. The `IMPORTANT.zip` documents and raw lore manuscript should NOT be copied into the public GitHub repo or website directory.
