@@ -16,3 +16,25 @@
 .perc-brand-banner{margin:0 0 24px;background:#080d13;border:1px solid #243749;border-radius:16px;overflow:hidden}
 .perc-brand-banner img{width:100%;height:auto;display:block}
 .perc-brand-banner figcaption{padding:9px 16px;color:#8fb4ca;font-size:.74rem;letter-spacing:.06em}
+
+/* PERC community pulse: compact, expandable live-data placeholder. */
+.perc-pulse{padding:12px 0 30px;scroll-margin-top:100px}
+.perc-pulse-heading{display:flex;justify-content:space-between;gap:24px;align-items:end;margin-bottom:18px}
+.perc-pulse-heading h2{font-size:clamp(1.55rem,2.6vw,2.35rem);margin:7px 0 0}
+.perc-pulse-subtitle{color:#a9c5d9;max-width:400px;font-size:.86rem;margin:0}
+.perc-pulse-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.perc-pulse-item{padding:21px;background:linear-gradient(145deg,#102234,#0a1521);border:1px solid #36536a;border-radius:15px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.perc-pulse-label{font-size:.68rem;letter-spacing:.14em;font-weight:800;color:#85cef9}
+.perc-pulse-item strong{color:#eff9ff;font-size:1.25rem;line-height:1.25;overflow-wrap:anywhere}
+.perc-pulse-item small{color:#a2b9ce;font-size:.79rem}
+.perc-pulse-details{border:1px solid #30485d;border-radius:12px;background:#0a1724;margin-top:13px;overflow:hidden}
+.perc-pulse-details summary{cursor:pointer;list-style:none;padding:15px 19px;display:flex;align-items:center;justify-content:space-between;color:#c8e8ff;font-weight:700;font-size:.89rem}
+.perc-pulse-details summary::-webkit-details-marker{display:none}.perc-pulse-details[open] summary{border-bottom:1px solid #30485d}
+.perc-pulse-expanded{display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:19px}.perc-pulse-expanded h3{font-size:1rem;margin:0 0 9px}
+.perc-pulse-placeholder{color:#9db7ca;line-height:1.6;font-size:.88rem;padding:18px}
+.perc-updates{scroll-margin-top:100px}.perc-release-current{display:flex;align-items:center;justify-content:space-between;gap:20px;border:1px solid #37566d;border-radius:15px;background:linear-gradient(110deg,#142b3f,#0b1723);padding:22px}
+.perc-release-current h3{font-size:1.75rem;margin:7px 0}.perc-release-current p{margin:0;max-width:720px;color:#aec5d7;font-size:.89rem}
+.perc-release-tag{border:1px solid #71b7dc;color:#afe3ff;padding:7px 13px;border-radius:999px;font-size:.74rem;letter-spacing:.11em}
+.perc-pulse-row{display:flex;justify-content:space-between;gap:15px;padding:10px 0;border-bottom:1px solid #243f54;color:#d8edfb}
+.perc-pulse-row small{color:#92c1df}
+@media(max-width:700px){.perc-pulse-heading{display:block}.perc-pulse-subtitle{margin-top:12px}.perc-pulse-grid{grid-template-columns:1fr}.perc-pulse-item{padding:16px}.perc-pulse-expanded{grid-template-columns:1fr}}
