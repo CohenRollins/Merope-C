@@ -356,3 +356,8 @@ body>main,body>footer{z-index:1;position:relative}
 .personal-clouds-code-cover code{color:#a6e0ff;white-space:nowrap}
 @media(max-width:900px){.personal-concept .personal-concept-stage .personal-clouds-code-cover{left:51%;bottom:11%;width:140px}}
 @media(max-width:570px){.personal-concept .personal-concept-stage .personal-clouds-code-cover{left:47%;bottom:11%;width:124px;padding:9px 10px;font-size:10px}}
+
+/* Clouds modesty overlay: position over lower skirt/white garment, not the shoes. */
+.personal-concept .personal-concept-stage .personal-clouds-code-cover{left:17%;bottom:6%;width:clamp(170px,16vw,210px);padding:14px 17px;background:#091726f7}
+@media (min-width:571px) and (max-width:900px){.personal-concept .personal-concept-stage .personal-clouds-code-cover{left:16%;bottom:7%;width:175px}}
+@media (max-width:570px){.personal-concept .personal-concept-stage .personal-clouds-code-cover{left:14%;bottom:8%;width:142px;padding:10px 12px}}
