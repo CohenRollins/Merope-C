@@ -14,6 +14,47 @@
   const dialog = $('anime-dialog');
   const GENRE_MAP = new Map([['1','Action'],['2','Adventure'],['10','Fantasy'],['24','Sci-Fi'],['37','Supernatural'],['8','Drama'],['4','Comedy']]);
   const state = {mode:'top',genre:'all',query:'',sort:'rated',page:1,items:[],more:false,loading:false,controller:null,selected:null,modalRun:0,episodePage:1,episodeMore:false,epLoading:false,trigger:null};
+
+  // Starter picks are packaged with the site so the hub isn't empty offline.
+  // These are personal recommendations, not live rankings or current airing information.
+  const STARTER_ANIME = [
+    [5114,'Fullmetal Alchemist: Brotherhood',2009,'TV',64,['1','2','10'],'Two brothers search for a way to undo the consequences of a failed alchemy experiment.'],
+    [9253,'Steins;Gate',2011,'TV',24,['24','8'],'A group of friends stumble into time travel and have to deal with what it changes.'],
+    [11061,'Hunter x Hunter',2011,'TV',148,['1','2','10'],'Gon sets out to become a Hunter and meets friends along the way.'],
+    [1535,'Death Note',2006,'TV',37,['8','37'],'A student finds a notebook that gives him a terrifying power.'],
+    [1,'Cowboy Bebop',1998,'TV',26,['1','24'],'A crew of bounty hunters tries to make a living while carrying the weight of their pasts.'],
+    [31240,'Re:Zero',2016,'TV',25,['8','10'],'Subaru finds himself in another world with a dangerous power and few easy answers.'],
+    [52991,'Frieren: Beyond Journey’s End',2023,'TV',28,['2','8','10'],'An elven mage takes a new journey long after the original adventure ended.'],
+    [40748,'Jujutsu Kaisen',2020,'TV',24,['1','10','37'],'A teenager enters a world of dangerous curses and sorcerers.'],
+    [38000,'Demon Slayer',2019,'TV',26,['1','10'],'Tanjiro trains to fight demons while trying to help his sister.'],
+    [32182,'Mob Psycho 100',2016,'TV',12,['1','4','37'],'A powerful young psychic tries to figure out who he wants to be.'],
+    [50265,'SPY x FAMILY',2022,'TV',12,['1','4'],'A spy, an assassin and a telepath try to keep up the appearance of a normal family.'],
+    [21,'One Piece',1999,'TV',null,['1','2','10'],'Luffy and his crew sail the seas searching for a legendary treasure.'],
+    [20583,'Haikyu!!',2014,'TV',25,['4','8'],'A high school volleyball team works to rise through tough competition.'],
+    [37521,'Vinland Saga',2019,'TV',24,['1','2','8'],'A young warrior searches for meaning in a world shaped by violence.'],
+    [47917,'Bocchi the Rock!',2022,'TV',12,['4'],'A shy guitarist joins a band and slowly learns to play with other people.'],
+    [199,'Spirited Away',2001,'Movie',null,['2','10'],'A girl enters a mysterious spirit world and must find her way home.'],
+    [32281,'Your Name',2016,'Movie',null,['8','10'],'Two teenagers form a strange connection despite living far apart.'],
+    [28851,'A Silent Voice',2016,'Movie',null,['8'],'A former bully tries to make amends as he grows older.']
+  ].map(([mal_id,title,year,type,episodes,genres,synopsis],i)=>({mal_id,title,year,type,episodes,
+    genres:genres.map(mal_id=>({mal_id:Number(mal_id),name:GENRE_MAP.get(mal_id)||'Other'})),synopsis,
+    images:{},image:'',score:null,popularity:i+1,status:'Featured pick',trailer:null,url:`https://myanimelist.net/anime/${mal_id}`,rating:'',title_japanese:'',aired:null}));
+  const BACKUP_KEY = 'merope_anime_catalog_backup_v1';
+  function offlineTitles(){
+    const q=state.query.trim().toLocaleLowerCase();
+    const raw=state.mode==='movie'?STARTER_ANIME.filter(a=>a.type==='Movie'):STARTER_ANIME;
+    return raw.filter(a=>(!q||a.title.toLowerCase().includes(q))&&(state.genre==='all'||a.genres.some(g=>String(g.mal_id)===state.genre)))
+      .sort((a,b)=>state.sort==='popular'?Number(a.popularity)-Number(b.popularity):a.title.localeCompare(b.title));
+  }
+  function showOffline(reason){
+    state.items=offlineTitles();state.more=false;
+    renderTiles(state.items);
+    $('anime-count').textContent=state.mode==='airing'?'Featured picks (airing data offline)': 'Featured picks';
+    $('anime-load-more').hidden=true;
+    setFeedback((reason?reason+' ':'')+'Showing the built-in picks. Live results load when the connection works.',Boolean(reason));
+    if(!state.items.length)grid.replaceChildren(paragraph('No built-in picks match. Try another title or genre.'));
+  }
+
   const saved = readStorage(STORE_FAVES, {});
   const watched = readStorage(STORE_WATCHED, {});
   let requestQueue = Promise.resolve();
@@ -66,7 +107,13 @@
       if(wait)await new Promise(r=>setTimeout(r,wait));
       if(signal?.aborted)throw new DOMException('Cancelled','AbortError');
       lastRequest=Date.now();
-      let response=await fetch(API+path,{signal,headers:{'Accept':'application/json'}});
+      const timeoutController=new AbortController();
+      const timeoutID=setTimeout(()=>timeoutController.abort(),6500);
+      const mergedSignal=signal&&typeof AbortSignal.any==='function'?AbortSignal.any([signal,timeoutController.signal]):(signal||timeoutController.signal);
+      let response;
+      try { response=await fetch(API+path,{signal:mergedSignal,headers:{'Accept':'application/json'}}); }
+      catch (err) { if(timeoutController.signal.aborted && !signal?.aborted)throw new Error('Live catalog timed out.'); throw err; }
+      finally { clearTimeout(timeoutID); }
       if(response.status===429){
         await new Promise(r=>setTimeout(r,1750));
         if(signal?.aborted)throw new DOMException('Cancelled','AbortError');
@@ -116,7 +163,7 @@
   async function loadCatalog(more=false){
     if(state.mode==='saved'){renderSaved();return;}
     if(state.loading&&more)return;
-    if(!more){state.controller?.abort();state.controller=new AbortController();state.page=1;state.items=[];grid.replaceChildren();}
+    if(!more){state.controller?.abort();state.controller=new AbortController();state.page=1;state.items=[];showOffline('');}
     const controller=state.controller;
     const page=state.page;
     setBusy(true);
@@ -135,9 +182,9 @@
       $('anime-load-more').hidden=!state.more;
     }catch(error){
       if(error.name!=='AbortError'&&controller===state.controller){
-        const msg=error instanceof TypeError?'Can’t reach the anime catalog. Check internet access or try again later.':error.message;
-        setFeedback(msg,true);
-        if(!state.items.length)grid.replaceChildren(paragraph('The live catalog is unavailable right now. Your saved list remains available on this browser.'));
+        const msg=error instanceof TypeError?'Live catalog is unavailable.':error.message;
+        if(!state.items.length || !more)showOffline(msg);
+        else setFeedback(msg+' Keeping the results already loaded.',true);
       }
     }finally{if(controller===state.controller)setBusy(false);}
   }
@@ -161,8 +208,8 @@
       const card=document.createElement('article');card.className='anime-tile';
       const posterBtn=document.createElement('button');posterBtn.className='anime-poster';posterBtn.type='button';posterBtn.setAttribute('aria-label',`Details for ${titleOf(anime)}`);
       const imgSrc=poster(anime);
-      if(imgSrc){const img=document.createElement('img');img.src=imgSrc;img.alt=`${titleOf(anime)} poster`;img.loading='lazy';img.decoding='async';img.referrerPolicy='no-referrer';posterBtn.append(img);}
-      else posterBtn.append(text('span','✧','anime-placeholder'));
+      if(imgSrc){const img=document.createElement('img');img.src=imgSrc;img.alt=`${titleOf(anime)} poster`;img.loading='lazy';img.decoding='async';img.referrerPolicy='no-referrer';img.addEventListener('error',()=>{img.remove();posterBtn.prepend(text('span',titleOf(anime),'anime-poster-letter'));},{once:true});posterBtn.append(img);}
+      else {const wrap=text('span',titleOf(anime),'anime-poster-letter');posterBtn.append(wrap);}
       if(Number(anime.score)>0)posterBtn.append(text('span',`★ ${Number(anime.score).toFixed(1)}`,'anime-score'));
       posterBtn.addEventListener('click',()=>openDetail(anime,posterBtn));
       const info=document.createElement('div');info.className='anime-tile-info';

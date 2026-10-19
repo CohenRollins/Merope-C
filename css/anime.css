@@ -98,3 +98,9 @@
 @media(max-width:780px){.anime-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.anime-intro{grid-template-columns:1fr;padding:45px 0 28px}.anime-intro-mark{display:none}.anime-library{padding:16px}.anime-library-head{align-items:start;flex-direction:column}.anime-count{white-space:normal}.anime-detail-top{grid-template-columns:150px minmax(0,1fr);gap:18px}}
 @media(max-width:520px){.anime-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.anime-dialog-shell{padding:15px}.anime-detail-top{grid-template-columns:1fr}.anime-detail-poster{width:140px}.anime-tab{padding:9px 10px;font-size:.8rem}.anime-search-submit{padding:10px 12px}.anime-tile-info{padding:9px}.anime-title-btn{font-size:.83rem}.anime-filterbar{gap:11px}.anime-order-label{width:100%;justify-content:end}}
 @media(prefers-reduced-motion:reduce){.anime-tile,.anime-poster img{transition:none!important}}
+
+/* Fallback posters stay legible if the anime API or external cover images are unavailable. */
+.anime-poster-letter{display:grid;place-items:center;text-align:center;padding:20px 12px;min-height:210px;width:100%;height:100%;font-family:'Space Grotesk',sans-serif;font-size:clamp(1rem,1.8vw,1.35rem);font-weight:700;line-height:1.4;color:#e8f6ff;background:linear-gradient(140deg,#27577b,#10192a 55%,#21466c);text-shadow:0 2px 12px #0006}
+.anime-tile:nth-child(4n+2) .anime-poster-letter{background:linear-gradient(135deg,#234969,#19243b,#305d72)}
+.anime-tile:nth-child(4n+3) .anime-poster-letter{background:linear-gradient(135deg,#1d3c60,#1b2838,#31566e)}
+.anime-tile:nth-child(4n+4) .anime-poster-letter{background:linear-gradient(135deg,#2c4765,#0d2436,#235a75)}

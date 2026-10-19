@@ -132,7 +132,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_response(200);self.send_header('Content-Type',mime);self.send_header('Cache-Control','private, max-age=120');self.send_header('Content-Length',str(len(data)));self.send_header('X-Content-Type-Options','nosniff');self.end_headers();self.wfile.write(data);return
         if path=='/api/gallery':
             # Safe public read endpoint: published entries only.
-            self.send(200,[a for a in gallery() if a['published']]);return
+            self.send(200,[{key:a[key] for key in ('id','title','description','src','file_date','date_type','tags','artist','characters','permission_confirmed','published')} for a in gallery() if a['published']]);return
         if path=='/admin':
             doc=PANEL.read_bytes()
             self.send_response(200);self.send_header('Content-Type','text/html; charset=utf-8');self.send_header('Cache-Control','no-store');self.send_header('Content-Length',str(len(doc)));self.send_header('X-Content-Type-Options','nosniff');self.send_header('X-Frame-Options','DENY');self.end_headers();self.wfile.write(doc);return
