@@ -343,3 +343,16 @@ body>main,body>footer{z-index:1;position:relative}
     bottom:0;
   }
 }
+
+/* Personal hero: decorative code card across the lower clothing area of the new illustration. */
+.personal-concept .personal-concept-stage .personal-clouds-code-cover{
+ position:absolute;z-index:7;left:55%;bottom:11%;width:clamp(116px,14vw,174px);
+ padding:12px 14px;background:#091726f2;border:1px solid #639fd0;
+ border-radius:11px;box-shadow:0 10px 30px #000b,0 0 16px #1f87cc30;
+ transform:rotate(-7deg);pointer-events:none;color:#c6e8ff;
+ font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:clamp(10px,.95vw,13px);line-height:1.5;
+}
+.personal-clouds-code-cover span{display:block;color:#8baabe;font-size:.82em;margin-bottom:4px}
+.personal-clouds-code-cover code{color:#a6e0ff;white-space:nowrap}
+@media(max-width:900px){.personal-concept .personal-concept-stage .personal-clouds-code-cover{left:51%;bottom:11%;width:140px}}
+@media(max-width:570px){.personal-concept .personal-concept-stage .personal-clouds-code-cover{left:47%;bottom:11%;width:124px;padding:9px 10px;font-size:10px}}
