@@ -14,6 +14,8 @@ import mimetypes
 import os
 import re
 import socket
+import threading
+import time
 import sys
 import urllib.error
 import urllib.parse
@@ -32,6 +34,59 @@ SAFE_ID = re.compile(r'^\d{1,8}$')
 JF_ID = re.compile(r'^[a-fA-F0-9]{32}$')
 MAX_RANGE = 16 * 1024 * 1024  # cap a single range; players request additional bytes as needed
 CHUNK = 128 * 1024
+IDENTITY_CACHE = {}
+IDENTITY_LOCK = threading.Lock()
+
+
+def anime_identity(mal_id, fetcher=None):
+    """Resolve a MAL ID using the public AniMap metadata endpoint (no media access)."""
+    if not valid_id(mal_id):
+        raise ValueError('Invalid MyAnimeList ID')
+    now = time.monotonic()
+    with IDENTITY_LOCK:
+        existing = IDENTITY_CACHE.get(mal_id)
+        if existing and existing[0] > now:
+            return existing[1]
+    result = {'mal_id': mal_id, 'tmdb': {'tv': None, 'movie': None},
+              'imdb_id': None, 'matched': False, 'source': 'AniMap'}
+    url = 'https://animap.id/api/map/mal/' + mal_id
+    req = urllib.request.Request(url, headers={
+        'User-Agent': 'Merope-C/0.12 (anime metadata ID mapping)',
+        'Accept': 'application/json', 'Accept-Encoding': 'identity'})
+    try:
+        opener = fetcher or urllib.request.build_opener(NoRedirect).open
+        with opener(req, timeout=7) as res:
+            if res.status != 200:
+                raise ValueError('Mapping server returned a non-success response')
+            data = json.loads(res.read(150_001).decode('utf-8'))
+        item = data[0] if isinstance(data, list) and data else data
+        if not isinstance(item, dict):
+            raise ValueError('Invalid metadata entry')
+        tmdb = item.get('tmdb_id', [])
+        if isinstance(tmdb, list):
+            for record in tmdb:
+                if not isinstance(record, dict):
+                    continue
+                kind = record.get('type')
+                ident = record.get('id')
+                if kind in ('tv','movie') and isinstance(ident, int) and 0 < ident < 10**10 and result['tmdb'][kind] is None:
+                    result['tmdb'][kind] = ident
+        imdb = item.get('imdb_id', [])
+        if isinstance(imdb, list):
+            result['imdb_id'] = next((v for v in imdb if isinstance(v,str) and re.fullmatch(r'tt\d{5,12}',v)), None)
+        result['matched'] = any(result['tmdb'].values()) or bool(result['imdb_id'])
+        result['title'] = str(item.get('title') or '')[:120]
+        result['status'] = 'ok'
+        ttl = 86400
+    except (urllib.error.URLError, urllib.error.HTTPError, ValueError, OSError, TimeoutError, json.JSONDecodeError, UnicodeError) as exc:
+        logging.info('Anime ID map %s unavailable: %s', mal_id, type(exc).__name__)
+        result['status'] = 'unavailable'
+        ttl = 1800
+    with IDENTITY_LOCK:
+        if len(IDENTITY_CACHE) >= 250:
+            IDENTITY_CACHE.clear()
+        IDENTITY_CACHE[mal_id] = (time.monotonic() + ttl, result)
+    return result
 
 
 def default_config():
@@ -193,7 +248,7 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
 
 
 class MediaHandler(BaseHTTPRequestHandler):
-    server_version = 'MeropeMedia/0.11'
+    server_version = 'MeropeMedia/0.12'
     sys_version = ''
 
     def log_message(self, fmt, *args):
@@ -220,8 +275,14 @@ class MediaHandler(BaseHTTPRequestHandler):
             logging.error('Bad media server configuration: %s', exc)
             return self.send_json(503, {'error':'Media configuration error'})
         if path.path == '/api/media/health':
-            return self.send_json(200, {'ok':True,'service':'Merope-C media bridge','version':'0.11','configured':bool(conf.get('titles')),'local_media_root_exists':local_root(conf).is_dir(),
+            return self.send_json(200, {'ok':True,'service':'Merope-C media bridge','version':'0.12','configured':bool(conf.get('titles')),'local_media_root_exists':local_root(conf).is_dir(),
                                         'jellyfin_configured':bool((conf.get('jellyfin') or {}).get('api_key'))})
+        if path.path == '/api/media/identity':
+            args = urllib.parse.parse_qs(path.query)
+            title_id = args.get('mal_id', [''])[0]
+            if not valid_id(title_id):
+                return self.send_json(400, {'error': 'Expected numeric mal_id'})
+            return self.send_json(200, anime_identity(title_id))
         if path.path == '/api/media/sources':
             args=urllib.parse.parse_qs(path.query)
             title_id=args.get('mal_id',[''])[0]
@@ -281,7 +342,7 @@ class MediaHandler(BaseHTTPRequestHandler):
         if not base or not token:return self.send_json(503,{'error':'Jellyfin not configured'})
         # Item ID is a 32-character hexadecimal identifier from private admin config.
         url=base+'/Videos/'+entry['item_id']+'/stream?static=true'
-        headers={'X-Emby-Token':token,'Accept-Encoding':'identity','User-Agent':'Merope-C-Media/0.11'}
+        headers={'Authorization': f'MediaBrowser Token="{token}"','Accept-Encoding':'identity','User-Agent':'Merope-C-Media/0.11'}
         if self.headers.get('Range'):headers['Range']=self.headers['Range']
         req=urllib.request.Request(url,headers=headers,method=self.command)
         opener=urllib.request.build_opener(NoRedirect)
@@ -322,7 +383,7 @@ def jellyfin_list(conf, search=''):
         raise ValueError('Configure the local Jellyfin API key in your private server.json first')
     qs=urllib.parse.urlencode({'Recursive':'true','IncludeItemTypes':'Episode,Movie',
                                'SearchTerm':search,'Limit':'40','Fields':'Path'})
-    req=urllib.request.Request(base+'/Items?'+qs,headers={'X-Emby-Token':token,'Accept':'application/json'},method='GET')
+    req=urllib.request.Request(base+'/Items?'+qs,headers={'Authorization': f'MediaBrowser Token="{token}"','Accept':'application/json'},method='GET')
     with urllib.request.build_opener(NoRedirect).open(req,timeout=15) as response:
         data=json.load(response)
     for item in data.get('Items',[]):

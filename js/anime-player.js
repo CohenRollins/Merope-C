@@ -1,123 +1,219 @@
-/* In-site anime player. Nothing here obtains copyrighted streams or bypasses access controls.
-   Playback sources come from a site config or from links entered by the viewer. */
+/* Merope-C Anime Hub v0.12.
+ * A source selector for local/Jellyfin media and ordinary documented iframe embeds.
+ * No third-party stream extraction, access-control bypass, or video proxying.
+ * External embeds are only loaded after the visitor clicks Play.
+ */
 (() => {
   'use strict';
-  const KEY='merope_anime_player_links_v1';
-  const PROGRESS='merope_anime_player_progress_v1';
-  const byId=id=>document.getElementById(id);
-  let config={titles:{}};
-  let mediaBackend={}; // Source lists served from Polaris; no credentials reach the browser.
-  let backendStatus={};
-  let local={};let progress={};let current=null;let hls=null;
-  const safe=raw=>{try{const u=new URL(raw,location.href);return (u.protocol==='https:'||u.protocol==='http:')?u.href:'';}catch{return '';}};
-  const stored=key=>{try{let x=JSON.parse(localStorage.getItem(key));return x&&typeof x==='object'&&!Array.isArray(x)?x:{};}catch{return {}};};
-  local=stored(KEY);progress=stored(PROGRESS);
-  const remember=()=>{try{localStorage.setItem(KEY,JSON.stringify(local));}catch{}};
-  const saveProgress=()=>{try{localStorage.setItem(PROGRESS,JSON.stringify(progress));}catch{}};
-  const el=(tag,cls,text)=>{let e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined)e.textContent=String(text);return e;};
-  fetch('../data/anime-sources.json',{cache:'no-store'}).then(r=>r.ok?r.json():{}).then(x=>{if(x&&typeof x.titles==='object')config=x; if(current)render();}).catch(()=>{});
-  async function loadBackend(titleId){
-    const id=String(titleId);
-    try{
-      const response=await fetch('../api/media/sources?mal_id='+encodeURIComponent(id),{cache:'no-store'});
-      if(!response.ok)throw new Error('Media API returned '+response.status);
-      const result=await response.json();
-      mediaBackend[id]=Array.isArray(result.sources)?result.sources:[];
-      backendStatus[id]='connected';
-    }catch{
-      mediaBackend[id]=[];
-      backendStatus[id]='unavailable';
-    }
+  const byId = id => document.getElementById(id);
+  const KEY = 'merope_anime_player_links_v1';
+  const PROGRESS = 'merope_anime_player_progress_v1';
+  const PREFS = 'merope_anime_player_selections_v2';
+  const OVERRIDES = 'merope_anime_id_overrides_v1';
+  const el = (tag, cls='', content) => {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (content !== undefined) e.textContent = String(content);
+    return e;
+  };
+  const stored = key => {
+    try { const o=JSON.parse(localStorage.getItem(key)); return o && typeof o==='object' && !Array.isArray(o) ? o : {}; }
+    catch { return {}; }
+  };
+  const save = (key,value) => { try { localStorage.setItem(key,JSON.stringify(value)); } catch {} };
+  const safe = value => {
+    try { const u=new URL(value,location.href); return ['https:','http:'].includes(u.protocol) ? u.href : ''; }
+    catch { return ''; }
+  };
+  const validId = x => /^\d{1,10}$/.test(String(x||''));
+  const validImdb = x => /^tt\d{5,12}$/.test(String(x||''));
+  let config={titles:{}}, local=stored(KEY), progress=stored(PROGRESS), prefs=stored(PREFS);
+  let overrides=stored(OVERRIDES), current=null, player=null, hls=null;
+  const backend={}, status={}, identities={};
+  const AUDIO=[['sub','Sub'],['dub','Dub'],['original','Original']];
+
+  const PROVIDERS = [
+    {id:'vidlink',label:'VidLink Anime',build:m=>`https://vidlink.pro/anime/${m.mal}/${m.episode}/${m.audio==='dub'?'dub':'sub'}?fallback=true`},
+    {id:'videasy',label:'Videasy',build:m=>m.id && `https://player.videasy.ws/embed/${m.movie?'movie':'tv'}/${m.id}${m.movie?'':`/${m.season}/${m.episode}`}`},
+    {id:'vidsrc',label:'VidSrc',build:m=>m.id && `https://vidsrc.sh/embed/${m.movie?'movie':'tv'}/${m.id}${m.movie?'':`/${m.season}/${m.episode}`}`},
+    {id:'cinesrc',label:'CineSrc',build:m=>m.tmdb && `https://cinesrc.st/embed/${m.movie?'movie':'tv'}/${m.tmdb}${m.movie?'':`?s=${m.season}&e=${m.episode}`}`},
+    {id:'screenscape',label:'ScreenScape',build:m=>m.id && `https://nxsha.screenscape.me/embed?${validImdb(m.id)?'imdb':'tmdb'}=${m.id}&type=${m.movie?'movie':'tv'}${m.movie?'':`&s=${m.season}&e=${m.episode}`}`},
+    {id:'embedstream',label:'Embed API Stream',build:m=>m.id && `https://watch.embed-api.stream/embed/${m.movie?'movie':'tv'}/${m.id}${m.movie?'':`/${m.season}/${m.episode}`}`},
+    // Separate legacy endpoint, possibly using overlapping upstream mirrors.
+    {id:'embedlegacy',label:'Embed API (legacy)',build:m=>m.tmdb && `https://player.embed-api.stream/?id=${m.tmdb}&type=${m.movie?'movie':'tv'}${m.movie?'':`&s=${m.season}&e=${m.episode}`}`}
+  ];
+
+  fetch('../data/anime-sources.json',{cache:'no-store'})
+    .then(r=>r.ok?r.json():{}).then(x=>{if(x&&typeof x.titles==='object')config=x;if(current)render();}).catch(()=>{});
+
+  async function loadBackend(id) {
+    try {
+      const r=await fetch('../api/media/sources?mal_id='+encodeURIComponent(id),{cache:'no-store'});
+      if (!r.ok) throw new Error('Media bridge unavailable');
+      const data=await r.json(); backend[id]=Array.isArray(data.sources)?data.sources:[];
+      status[id]='connected';
+    } catch {backend[id]=[];status[id]='unavailable';}
     if(current && String(current.mal_id)===id)render();
   }
-  function sources(){
-    if(!current)return [];
-    const id=String(current.mal_id);
-    const raw=[...(Array.isArray(mediaBackend[id])?mediaBackend[id]:[]),...(Array.isArray(config.titles?.[id])?config.titles[id]:[]),...(Array.isArray(local[id])?local[id]:[])];
-    return raw.filter(x=>x&&Number.isInteger(Number(x.season))&&Number.isInteger(Number(x.episode))&&x.episode>=0&&safe(x.url))
-      .map(x=>({...x,season:Number(x.season),episode:Number(x.episode),audio:String(x.audio||'sub').toLowerCase(),type:String(x.type||'embed').toLowerCase(),label:String(x.label||'Source').slice(0,80)}));
+  async function loadIdentity(id) {
+    try {
+      const r=await fetch('../api/media/identity?mal_id='+encodeURIComponent(id),{cache:'no-store'});
+      if(!r.ok)throw new Error('Mapping unavailable');
+      const data=await r.json();
+      identities[id]=data&&typeof data==='object'?data:{};
+    } catch {identities[id]={status:'unavailable'};}
+    if(current && String(current.mal_id)===id)render();
   }
-  function stop(){if(hls){try{hls.destroy();}catch{}hls=null;}}
-  function play(x,frame,status){
-    stop();frame.replaceChildren();const url=safe(x.url);if(!url)return;
-    const kind=x.type;
-    if(kind==='mp4'||kind==='webm'||kind==='hls'){
-      const video=el('video','anime-real-video');video.controls=true;video.playsInline=true;video.preload='metadata';video.setAttribute('controlsList','nodownload');
-      frame.append(video);let key=String(current.mal_id)+'/'+x.season+'/'+x.episode+'/'+x.audio+'/'+url;
-      video.addEventListener('loadedmetadata',()=>{let t=Number(progress[key]||0);if(t>10&&t<video.duration-10)video.currentTime=t;});
-      video.addEventListener('timeupdate',()=>{if(Number.isFinite(video.currentTime)&&Math.floor(video.currentTime)%5===0){progress[key]=Math.floor(video.currentTime);saveProgress();}});
-      video.addEventListener('ended',()=>{progress[key]=0;saveProgress();});
-      video.addEventListener('error',()=>{status.textContent='This source could not play. Check the URL and file format.';});
-      if(kind==='hls'&&!video.canPlayType('application/vnd.apple.mpegurl')){
+  function idMapping(mal, movie) {
+    const raw=identities[mal]||{}, manual=overrides[mal]||{};
+    const type=movie?'movie':'tv';
+    const picked=manual[type]||raw.tmdb?.[type];
+    const tmdb=validId(picked)?String(picked):'';
+    const imdb=validImdb(manual.imdb)?manual.imdb:(validImdb(raw.imdb_id)?raw.imdb_id:'');
+    return {tmdb,id:tmdb||imdb,imdb};
+  }
+  function mediaItems(mal) {
+    const list=[...(backend[mal]||[]),...(Array.isArray(config.titles?.[mal])?config.titles[mal]:[]),...(local[mal]||[])];
+    return list.filter(x=>x && Number.isInteger(Number(x.season)) && Number.isInteger(Number(x.episode)) && Number(x.episode)>=0 && safe(x.url))
+      .map(x=>({...x,season:Number(x.season),episode:Number(x.episode),audio:String(x.audio||'sub').toLowerCase(),type:String(x.type||'embed').toLowerCase(),label:String(x.label||'Library source').slice(0,80)}));
+  }
+  function stop() { if(hls){try{hls.destroy();}catch{}hls=null;} }
+  function play(x, frame, note) {
+    stop();frame.replaceChildren();note.textContent='';
+    const url=safe(x.url);if(!url){note.textContent='No usable URL for this source.';return;}
+    if(['mp4','webm','hls'].includes(x.type)) {
+      const video=el('video','anime-real-video');video.controls=true;video.playsInline=true;video.preload='metadata';
+      frame.append(video);
+      const key=String(current.mal_id)+'/'+x.season+'/'+x.episode+'/'+x.audio+'/'+url;
+      video.addEventListener('loadedmetadata',()=>{const t=Number(progress[key]||0);if(t>10&&t<video.duration-10)video.currentTime=t;});
+      video.addEventListener('timeupdate',()=>{if(Number.isFinite(video.currentTime)&&Math.floor(video.currentTime)%5===0){progress[key]=Math.floor(video.currentTime);save(PROGRESS,progress);}});
+      video.addEventListener('ended',()=>{progress[key]=0;save(PROGRESS,progress);});
+      video.addEventListener('error',()=>{note.textContent='This source could not play. Try another source.';});
+      if(x.type==='hls'&&!video.canPlayType('application/vnd.apple.mpegurl')){
         if(window.Hls?.isSupported()){hls=new Hls();hls.loadSource(url);hls.attachMedia(video);}
-        else{status.textContent='HLS requires an HLS-compatible browser or Hls.js. You can still use MP4/WebM in this browser.';video.src=url;}
+        else note.textContent='HLS support is unavailable in this browser. Try a different source.';
       }else video.src=url;
-    } else {
-      const iframe=el('iframe','anime-real-frame');iframe.src=url;iframe.title=current.title+' episode '+x.episode;
-      iframe.loading='lazy';iframe.allow='fullscreen; autoplay; picture-in-picture; encrypted-media';iframe.allowFullscreen=true;
-      iframe.referrerPolicy='strict-origin-when-cross-origin';
-      iframe.setAttribute('sandbox','allow-scripts allow-same-origin allow-presentation allow-forms');frame.append(iframe);
-      status.textContent='Embedded players may require their own controls. Only link to a source you trust.';
+      return;
     }
+    const iframe=el('iframe','anime-real-frame');iframe.src=url;
+    iframe.title=String(current.title||'Anime')+' player';iframe.loading='eager';
+    iframe.allow='autoplay; fullscreen; picture-in-picture; encrypted-media';iframe.allowFullscreen=true;
+    iframe.referrerPolicy='strict-origin-when-cross-origin';
+    iframe.sandbox='allow-scripts allow-same-origin allow-presentation allow-forms';
+    frame.append(iframe);
+    note.textContent='Third-party player loaded. If it stays blank, try another source. Some players block embedding.';
+    const ext=el('a','anime-external-link','Open source directly ↗');ext.href=url;ext.target='_blank';ext.rel='noopener noreferrer';note.append(' ',ext);
   }
-  function render(){
+  function optionsFor(mal,movie,season,episode,audio) {
+    const result=[];
+    for(const item of mediaItems(mal)) {
+      if(item.season!==season||item.episode!==episode||item.audio!==audio)continue;
+      result.push({...item,key:'library:'+item.label+':'+item.url,available:true});
+    }
+    const identity=idMapping(mal,movie);
+    const args={...identity,mal,movie,season,episode:movie?1:episode,audio};
+    for(const provider of PROVIDERS){
+      const url=provider.build(args)||'';
+      result.push({key:'remote:'+provider.id,label:provider.label+(url?'':' · ID needed'),url,type:'embed',season,episode,audio,available:Boolean(url),remote:true});
+    }
+    return result;
+  }
+  function render() {
     const root=byId('anime-detail-player');if(!root||!current)return;
-    root.replaceChildren();stop();
-    const items=sources();const formBox=el('div','anime-source-controls');
-    const bar=el('div','anime-source-row');
-    const makeSelect=(label,values)=>{
-      const wrap=el('label','anime-source-label',label);const sel=el('select');
-      for(const [v,txt] of values){const o=el('option','',txt);o.value=String(v);sel.append(o);}wrap.append(sel);bar.append(wrap);return sel;
+    stop();root.replaceChildren();
+    const mal=String(current.mal_id),movie=current.type==='Movie',files=mediaItems(mal);
+    const defaults=prefs[mal]||{};
+    const startSeason=Number.isInteger(defaults.season)?defaults.season:movie?0:1;
+    const startEpisode=Number.isInteger(defaults.episode)?defaults.episode:movie?0:1;
+    const wrap=el('div','anime-source-controls'),bar=el('div','anime-source-row');
+    const makeNumber=(label,num,min,max)=>{
+      const w=el('label','anime-source-label',label),i=el('input','anime-number-field');i.type='number';i.min=String(min);i.max=String(max);i.step='1';i.value=String(Math.min(max,Math.max(min,num)));w.append(i);bar.append(w);return i;
     };
-    let seasons=[...new Set(items.map(x=>x.season))].sort((a,b)=>a-b);
-    if(!seasons.length)seasons=[1];
-    const season=makeSelect('Season',seasons.map(n=>[n,'Season '+n]));
-    const episode=makeSelect('Episode',[]),audio=makeSelect('Audio', [['sub','Sub'],['dub','Dub'],['original','Original']]);
-    const server=makeSelect('Source',[]);
-    const stage=el('div','anime-playback-stage'),status=el('p','anime-play-status','');
-    function updateEpisodes(){
-      episode.replaceChildren();const relevant=[...new Set(items.filter(x=>x.season===Number(season.value)).map(x=>x.episode))].sort((a,b)=>a-b);
-      for(const n of relevant){let o=el('option','',current.type==='Movie'?'Movie':'Episode '+n);o.value=n;episode.append(o);}
-      updateAudio();
+    const makeSelect=(label,values)=>{
+      const w=el('label','anime-source-label',label),s=el('select');for(const [value,name] of values){const o=el('option','',name);o.value=value;s.append(o);}w.append(s);bar.append(w);return s;
+    };
+    const season=makeNumber('Season (TV numbering)',startSeason,movie?0:1,99),
+      episode=makeNumber(movie?'Movie':'Episode',startEpisode,movie?0:1,9999);
+    if(movie){season.closest('label').hidden=true;episode.closest('label').hidden=true;}
+    const audio=makeSelect('Audio preference',AUDIO);
+    if(['sub','dub','original'].includes(defaults.audio))audio.value=defaults.audio;
+    const server=makeSelect('Video source',[]);
+    const frame=el('div','anime-playback-stage'),note=el('p','anime-play-status');
+    const action=el('button','button anime-load-embed','▶ Load selected player');action.type='button';
+    const message=el('p','anime-source-hint');
+    const controls=el('div','anime-load-actions');controls.append(action);
+    const playback=el('div','anime-player-options');playback.append(frame,controls,note,message);
+    wrap.append(bar,playback);root.append(wrap);
+    let active=[];
+    const persist=(key)=>{prefs[mal]={season:Number(season.value),episode:Number(episode.value),audio:audio.value,provider:key||''};save(PREFS,prefs);};
+    const resetFrame=()=>{stop();frame.replaceChildren(el('div','anime-embed-placeholder','Choose a source, then click Load selected player.'));note.textContent='';};
+    function populate(keepPrevious=true){
+      const old=keepPrevious?server.value:'';
+      const s=Number(season.value),e=Number(episode.value);
+      active=optionsFor(mal,movie,s,e,audio.value);
+      server.replaceChildren();
+      for(const item of active){const opt=el('option','',item.label);opt.value=item.key;opt.disabled=!item.available;server.append(opt);}
+      const previous=old||defaults.provider;
+      const chosen=active.find(x=>x.key===previous&&x.available);
+      const first=active.find(x=>x.available);
+      if(chosen)server.value=chosen.key;
+      else if(first)server.value=first.key;
+      const selected=active.find(x=>x.key===server.value&&x.available);
+      action.disabled=!selected;
+      resetFrame();
+      const extCount=active.filter(x=>x.remote&&x.available).length;
+      const isMap=identities[mal] && identities[mal].status==='ok';
+      message.textContent=`${extCount} external player option${extCount===1?'':'s'} configured. Availability has not been verified. `+
+        (extCount<PROVIDERS.length?(isMap?'Some services need a different title ID.':'TMDB mapping unavailable or still loading. VidLink uses the MAL ID directly.'):'')+
+        (movie?'':' TV providers may number anime seasons differently.');
+      if(status[mal]==='connected'&&files.length)message.textContent+=' Polaris/Jellyfin library connected.';
     }
-    function updateAudio(){
-      const opts=[...new Set(items.filter(x=>x.season===Number(season.value)&&x.episode===Number(episode.value)).map(x=>x.audio))];
-      audio.replaceChildren();for(const k of opts){let o=el('option','',k==='dub'?'Dub':k==='sub'?'Sub':k==='original'?'Original':k);o.value=k;audio.append(o);}updateServers();
+    for(const control of [season,episode,audio])control.addEventListener('change',()=>{populate(false);persist(server.value);});
+    server.addEventListener('change',()=>{persist(server.value);resetFrame();});
+    action.addEventListener('click',()=>{
+      const selected=active.find(x=>x.key===server.value&&x.available);if(!selected)return;
+      persist(selected.key);play(selected,frame,note);
+    });
+    populate(true);
+    const nav=el('div','anime-episode-nav');
+    const prev=el('button','button alt','← Previous'),next=el('button','button alt','Next episode →');
+    prev.type=next.type='button';
+    if(!movie){
+      prev.addEventListener('click',()=>{if(Number(episode.value)>1){episode.value=String(Number(episode.value)-1);episode.dispatchEvent(new Event('change'));}});
+      next.addEventListener('click',()=>{episode.value=String(Number(episode.value)+1);episode.dispatchEvent(new Event('change'));});
+      nav.append(prev,next);root.append(nav);
     }
-    function currentOptions(){return items.filter(x=>x.season===Number(season.value)&&x.episode===Number(episode.value)&&x.audio===audio.value);}
-    function playSelected(){
-      const opts=currentOptions();stage.replaceChildren();status.textContent='';
-      const x=opts[Number(server.value)||0];if(x)play(x,stage,status);
-    }
-    function updateServers(){
-      const opts=currentOptions();server.replaceChildren();
-      for(const [i,x] of opts.entries()){let o=el('option','',x.label||('Source '+(i+1)));o.value=i;server.append(o);}
-      playSelected();
-    }
-    season.addEventListener('change',updateEpisodes);episode.addEventListener('change',updateAudio);audio.addEventListener('change',updateServers);server.addEventListener('change',playSelected);
-    const feedback=el('p','anime-source-message');
-    if(items.length){updateEpisodes();formBox.append(bar,stage,status);root.append(formBox);}
-    else root.append(el('p','anime-detail-muted',
-      backendStatus[String(current.mal_id)]==='unavailable'
-      ? 'No sources found. The Polaris media API is not connected here yet; you can still add a link below.'
-      : 'No full episodes linked to this title yet. Add an MP4/WebM in your Polaris library or configure a Jellyfin item.'));
-    if(backendStatus[String(current.mal_id)]==='connected' && items.length){
-      root.append(el('p','anime-media-connection','Polaris media library connected'));
-    }
-    const details=document.createElement('details');details.className='anime-add-source';
-    const summary=el('summary','', 'Add a playback link');details.append(summary);
-    const help=el('p','smallprint','Choose a supported direct video (MP4, WebM, HLS) or an embeddable player URL. This saves the link in your browser only. Shared sources go in data/anime-sources.json on Polaris.');details.append(help);
-    const form=el('form','anime-source-form');
-    const input=(label,name,type,value)=>{const wrap=el('label','',label),inp=document.createElement('input');inp.name=name;inp.type=type;inp.required=true;inp.value=value;wrap.append(inp);form.append(wrap);return inp;};
-    input('Season','season','number','1').min='0';input('Episode','episode','number',current.type==='Movie'?'0':'1').min='0';
-    const linkField=input('Playback URL','url','url','');linkField.placeholder='https://your-player.example/embed/episode-1';
-    const format=el('label','', 'Source type');const select=el('select');select.name='type';for(const t of ['embed','mp4','webm','hls']){let o=el('option','',t.toUpperCase());o.value=t;select.append(o);}format.append(select);form.append(format);
-    const audioLabel=el('label','', 'Audio');const audioInput=el('select');audioInput.name='audio';for(const t of ['sub','dub','original']){let o=el('option','',t);o.value=t;audioInput.append(o);}audioLabel.append(audioInput);form.append(audioLabel);
-    input('Source name','label','text','My source');
-    const submit=el('button','button','Save source');submit.type='submit';form.append(submit,feedback);
-    form.addEventListener('submit',e=>{e.preventDefault();let d=new FormData(form);let url=safe(d.get('url'));if(!url){feedback.textContent='Enter a valid HTTP or HTTPS address.';return;}
-      const id=String(current.mal_id);local[id]??=[];local[id].push({season:Number(d.get('season')),episode:Number(d.get('episode')),audio:String(d.get('audio')),label:String(d.get('label')||'My source'),type:String(d.get('type')),url});remember();render();});
+    const identity=el('details','anime-id-details');
+    const title=el('summary','','Wrong anime or missing players? Edit title IDs');identity.append(title);
+    identity.append(el('p','smallprint','TMDB mappings are looked up automatically, but MAL and TMDB season numbering can differ. An override here is saved only in this browser.'));
+    const override=el('form','anime-id-form');
+    const fields=[['tv','TMDB TV ID'],['movie','TMDB Movie ID'],['imdb','IMDb ID (tt...)']];
+    const ids=idMapping(mal,movie),original=identities[mal]?.tmdb||{};
+    const valueFor=k=>overrides[mal]?.[k]|| (k==='imdb' ? (ids.imdb||'') : original[k]||'');
+    for(const [k,label] of fields){const w=el('label','',label),input=el('input');input.name=k;input.value=String(valueFor(k));input.placeholder=k==='imdb'?'tt1234567':'12345';w.append(input);override.append(w);}
+    const set=el('button','button alt','Save ID matching');set.type='submit';override.append(set);
+    override.addEventListener('submit',ev=>{
+      ev.preventDefault();const data=new FormData(override),tv=String(data.get('tv')||'').trim(),film=String(data.get('movie')||'').trim(),imdb=String(data.get('imdb')||'').trim();
+      if((tv&&!validId(tv))||(film&&!validId(film))||(imdb&&!validImdb(imdb)))return;
+      overrides[mal]={tv,movie:film,imdb};save(OVERRIDES,overrides);render();
+    });identity.append(override);root.append(identity);
+    const details=el('details','anime-add-source');details.append(el('summary','','Add a personal playback link'));
+    details.append(el('p','smallprint','Save a direct MP4/WebM/HLS file URL or a supported embed for this browser only.'));const form=el('form','anime-source-form');
+    function addField(label,name,type,value){const w=el('label','',label),input=el('input');input.name=name;input.type=type;input.required=true;input.value=value;w.append(input);form.append(w);return input;}
+    const numSeason=addField('Season','season','number',movie?'0':String(season.value));numSeason.min='0';
+    const numEpisode=addField('Episode','episode','number',movie?'0':String(episode.value));numEpisode.min='0';
+    addField('Playback URL','url','url','').placeholder='https://example.com/video.mp4';
+    const typeWrap=el('label','','Source type'),typeSelect=el('select');typeSelect.name='type';for(const k of ['embed','mp4','webm','hls']){const o=el('option','',k.toUpperCase());o.value=k;typeSelect.append(o);}typeWrap.append(typeSelect);form.append(typeWrap);
+    const audioWrap=el('label','','Audio'),audioSelect=el('select');audioSelect.name='audio';for(const [v,n] of AUDIO){const o=el('option','',n);o.value=v;audioSelect.append(o);}audioWrap.append(audioSelect);form.append(audioWrap);
+    addField('Source name','label','text','My source');
+    const submit=el('button','button','Save source');submit.type='submit';form.append(submit);
+    form.addEventListener('submit',ev=>{ev.preventDefault();const d=new FormData(form),url=safe(d.get('url'));if(!url)return;
+      local[mal]??=[];local[mal].push({season:Number(d.get('season')),episode:Number(d.get('episode')),audio:String(d.get('audio')),label:String(d.get('label')||'Personal'),type:String(d.get('type')),url});save(KEY,local);render();});
     details.append(form);root.append(details);
   }
-  window.meropePlayer={open(a){current=a;render();void loadBackend(a.mal_id);},close(){stop();current=null;}};
+  window.meropePlayer = {
+    open(anime){if(!anime||!validId(anime.mal_id))return;current=anime;render();
+      const mal=String(anime.mal_id);void loadBackend(mal);void loadIdentity(mal);},
+    close(){stop();current=null;}
+  };
 })();

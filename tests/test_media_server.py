@@ -18,7 +18,7 @@ class JellyfinMock(BaseHTTPRequestHandler):
     seen=[]
     def log_message(self,*args):pass
     def do_GET(self):
-        JellyfinMock.seen.append((self.path, self.headers.get('X-Emby-Token'), self.headers.get('Range')))
+        JellyfinMock.seen.append((self.path, self.headers.get('Authorization'), self.headers.get('Range')))
         if self.headers.get('Range')=='bytes=3-5':
             self.send_response(206)
             self.send_header('Content-Range','bytes 3-5/10')
@@ -56,7 +56,7 @@ class TestMedia(unittest.TestCase):
         return urllib.request.urlopen(urllib.request.Request(self.url+path,headers=headers or {},method=method),timeout=4)
 
     def test_health_and_sources(self):
-        self.assertEqual(json.load(self.fetch('/api/media/health'))['version'],'0.11')
+        self.assertEqual(json.load(self.fetch('/api/media/health'))['version'],'0.12')
         s=json.load(self.fetch('/api/media/sources?mal_id=31240'))['sources']
         self.assertEqual(len(s),2)
         self.assertEqual((s[0]['season'],s[0]['episode'],s[0]['audio'],s[0]['type']), (1,1,'sub','mp4'))
@@ -84,6 +84,27 @@ class TestMedia(unittest.TestCase):
         with self.assertRaises(urllib.error.HTTPError) as ctx:self.fetch('/api/media/play/31240/999')
         self.assertEqual(ctx.exception.code,404)
 
+    def test_anime_identity_mapping_and_validation(self):
+        from io import BytesIO
+        class FakeResponse:
+            status=200
+            def __enter__(self): return self
+            def __exit__(self,*args): return False
+            def read(self, amount):
+                return json.dumps([{'tmdb_id':[{'id':12345,'type':'tv'}, {'id':76432,'type':'movie'}],
+                                    'imdb_id':['tt1234567'],'title':'Example'}]).encode()
+        media.IDENTITY_CACHE.clear()
+        result=media.anime_identity('31240',fetcher=lambda request,timeout:FakeResponse())
+        self.assertEqual(result['tmdb']['tv'],12345)
+        self.assertEqual(result['tmdb']['movie'],76432)
+        self.assertEqual(result['imdb_id'],'tt1234567')
+        self.assertTrue(result['matched'])
+        with patch.object(media,'anime_identity',return_value=result):
+            self.assertEqual(json.load(self.fetch('/api/media/identity?mal_id=31240'))['tmdb']['tv'],12345)
+        with self.assertRaises(urllib.error.HTTPError) as caught:
+            self.fetch('/api/media/identity?mal_id=abc')
+        self.assertEqual(caught.exception.code,400)
+
     def test_manual_local_mapping_and_missing_file(self):
         (self.media_dir/'MAL199_movie.mp4').write_bytes(b'abc123')
         self.conf['titles']={'199':[{'provider':'local','file':'MAL199_movie.mp4','season':0,'episode':0,'audio':'sub','label':'Local movie'},
@@ -107,7 +128,7 @@ class TestMedia(unittest.TestCase):
             resp=self.fetch('/api/media/play/12/0',{'Range':'bytes=3-5'})
             self.assertEqual(resp.status,206)
             self.assertEqual(resp.read(),b'345')
-        self.assertEqual(JellyfinMock.seen[-1][1],'PRIVATEKEY')
+        self.assertEqual(JellyfinMock.seen[-1][1],'MediaBrowser Token="PRIVATEKEY"')
         self.assertEqual(JellyfinMock.seen[-1][2],'bytes=3-5')
 
 if __name__=='__main__':unittest.main()
