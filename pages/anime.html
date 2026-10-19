@@ -8,10 +8,10 @@
 <meta content="Explore anime series and films, save a watchlist, find episode information and official streaming links on Merope-C." name="description"/>
 <title>Anime Hub | Merope-C</title>
 <link href="../css/style.css" rel="stylesheet"/>
-<link href="../css/anime.css" rel="stylesheet"/>
+<link href="../css/anime.css?v=resume1" rel="stylesheet"/>
 <script defer="" src="../js/main.js"></script>
-<script defer="" src="../js/anime.js"></script>
-<script defer="" src="https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js"></script><script defer="" src="../js/anime-player.js"></script></head>
+<script defer="" src="../js/anime.js?v=resume1"></script>
+<script defer="" src="https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js"></script><script defer="" src="../js/anime-player.js?v=resume1"></script></head>
 <body>
 <a class="anime-skip" href="#anime-main">Skip to anime library</a>
 <header class="topbar">
@@ -26,9 +26,10 @@
 </div>
 <div aria-hidden="true" class="anime-intro-mark"><span>星</span><span>✧</span></div>
 </div>
+<section aria-labelledby="anime-resume-heading" class="anime-resume" id="anime-resume" hidden><div class="anime-library-head"><div><span class="eyebrow">Your watch history</span><h2 id="anime-resume-heading">Continue watching.</h2></div><span class="anime-count">Saved in this browser</span></div><div id="anime-resume-list" class="anime-resume-list"></div></section>
 <section aria-labelledby="anime-nowwatch-heading" class="anime-nowwatch" id="anime-watch-on-site">
-<div class="anime-watch-head"><div><div class="eyebrow">Your watch space</div><h2 id="anime-nowwatch-heading">Watch full episodes here.</h2><p>Pick an anime, choose an episode, and switch between available video players without leaving Merope-C. Your Polaris/Jellyfin library stays available too.</p></div><span class="anime-official-stamp">VIDEO LIBRARY</span></div>
-<div class="anime-player-layout anime-library-setup"><div class="anime-player-shell"><div class="anime-player-container" id="anime-featured-player"><div class="anime-player-cover"><span>▶</span><strong>Select a title in the catalog to watch it on Merope-C.</strong></div></div><div class="anime-player-under"><strong id="anime-player-title">Merope-C Video Player</strong><a href="#anime-library-title" id="anime-player-source">Browse titles ↓</a></div></div><div class="anime-playlist-picks"><h3>Switch your player</h3><p>Choose your anime and episode, then select a video provider. If one player is unavailable, try another from the dropdown. Local and Jellyfin sources still work.</p><p class="smallprint">External providers are independent services. A listed player is not a guarantee that a particular episode exists, and the provider may have its own ads or restrictions.</p><a class="button alt" href="#anime-library-title">Browse anime ↓</a></div></div>
+<div class="anime-watch-head"><div><div class="eyebrow">Your watch space</div><h2 id="anime-nowwatch-heading">Your video library.</h2><p>Browse titles and play video from your configured library when available. Other listed embeds are unverified and may not work.</p></div><span class="anime-official-stamp">VIDEO LIBRARY</span></div>
+<div class="anime-player-layout anime-library-setup"><div class="anime-player-shell"><div class="anime-player-container" id="anime-featured-player"><div class="anime-player-cover"><span>▶</span><strong>Select a title in the catalog to watch it on Merope-C.</strong></div></div><div class="anime-player-under"><strong id="anime-player-title">Merope-C Video Player</strong><a href="#anime-library-title" id="anime-player-source">Browse titles ↓</a></div></div><div class="anime-playlist-picks"><h3>Switch your player</h3><p>Choose your anime and episode, then load an available configured source. Polaris/Jellyfin integration will be tested separately.</p><p class="smallprint">External providers are independent services. A listed player is not a guarantee that a particular episode exists, and the provider may have its own ads or restrictions.</p><a class="button alt" href="#anime-library-title">Browse anime ↓</a></div></div>
 </section><section aria-labelledby="anime-library-title" class="anime-library">
 <div class="anime-library-head">
 <div>
