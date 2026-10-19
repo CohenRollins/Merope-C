@@ -23,3 +23,62 @@ body:after{content:"";pointer-events:none;position:fixed;inset:0;z-index:-1;opac
 body:before,body:after{z-index:0}
 body>main,body>.footer{position:relative;z-index:1}
 .topbar{position:sticky;z-index:10}
+
+
+/* Merope-C v0.4: midnight starfield / soft scroll drift */
+:root {
+  --bg:#04070b;
+  --nav:#080c11;
+  --surface:#0c141e;
+  --surface2:#14202e;
+  --line:#243344;
+  --stars-far:0px;
+  --stars-near:0px;
+}
+body {background:#04070b;isolation:isolate;}
+body::before,body::after {position:fixed;inset:0;content:"";pointer-events:none;z-index:0;will-change:background-position;}
+body::before {
+  opacity:.58;
+  background-image:
+    radial-gradient(1.2px 1.2px at 13px 29px,#6bb3e9 97%,transparent),
+    radial-gradient(1px 1px at 91px 107px,#badbf6 97%,transparent),
+    radial-gradient(1px 1px at 172px 64px,#3978bd 97%,transparent),
+    radial-gradient(1px 1px at 241px 166px,#d7ebff 97%,transparent);
+  background-size:269px 211px,383px 307px,447px 347px,547px 419px;
+  background-position:0 var(--stars-far),0 var(--stars-far),0 var(--stars-far),0 var(--stars-far);
+}
+body::after {
+  opacity:.28;
+  background-image:
+    radial-gradient(2px 2px at 53px 85px,#61a9ee 98%,transparent),
+    radial-gradient(1.4px 1.4px at 187px 27px,#95cfff 98%,transparent),
+    radial-gradient(1px 1px at 109px 191px,#fff 98%,transparent);
+  background-size:433px 337px,541px 389px,613px 467px;
+  background-position:0 var(--stars-near),0 var(--stars-near),0 var(--stars-near);
+}
+body > main,body > footer {position:relative;z-index:1;}
+body > .topbar {z-index:9;}
+.card,.info,.art-card,.device-card {background-color:var(--surface);}
+/* Anti-Glonk: formal, unapologetic gaming campaign */
+.glonk-site h1{font-size:clamp(3rem,7vw,6rem)}
+.glonk-site h1 em{color:#9acff8;font-style:normal}
+.glonk-hero{display:grid;grid-template-columns:1.15fr .85fr;gap:40px;align-items:center;padding:70px 0 48px}
+.glonk-warning{border-left:3px solid #88cafa;background:#10202d;border-radius:0 10px 10px 0;color:#d4e9f8;padding:18px 22px;margin-top:26px;line-height:1.6}
+.glonk-specimen{margin:0;padding:15px;min-height:400px;display:flex;flex-direction:column;justify-content:center;align-items:center;background:#111a24;border:1px solid #2d4559;border-radius:19px;overflow:hidden}
+.glonk-specimen img{width:100%;height:auto;max-height:510px;object-fit:contain;border-radius:8px}
+.glonk-specimen figcaption{text-align:center;padding-top:15px;font-size:.75rem;letter-spacing:.12em;color:#98b7ca;text-transform:uppercase}
+.glonk-team{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.glonk-team .info{display:flex;flex-direction:column;align-items:start}
+.glonk-team .button{margin-top:auto}
+.glonk-team h3{font-size:1.45rem;line-height:1.25}
+.glonk-protocol{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.glonk-protocol>div{background:#0b1520;border:1px solid #2b4558;padding:21px;border-radius:14px}
+.glonk-protocol b{color:#69b7ef;display:block;font-size:.9rem;margin-bottom:13px}
+.glonk-protocol strong{color:#eff7ff;letter-spacing:.07em}
+.glonk-protocol p{font-size:.88rem;color:var(--muted)}
+.glonk-manifesto{margin-bottom:75px;background:linear-gradient(125deg,#13283a,#070b10)}
+.glonk-manifesto .button{margin:18px 0}
+.glonk-manifesto .smallprint{font-size:.76rem;max-width:730px}
+@media(max-width:850px){.glonk-hero,.glonk-team{grid-template-columns:1fr}.glonk-protocol{grid-template-columns:repeat(2,minmax(0,1fr))}.glonk-hero{padding:38px 0}.glonk-specimen{min-height:280px;max-width:580px}}
+@media(max-width:530px){.glonk-protocol{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){body::before,body::after{will-change:auto;background-position:0 0!important}}

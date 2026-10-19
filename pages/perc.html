@@ -1,9 +1,139 @@
-<!DOCTYPE html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090e14">
+  <meta name="description" content="PERC House Support Bot: rankings, monthly competitions, Takeover Arena, headcounts, member commands and the technology behind Coco's Discord bot.">
+  <title>PERC House Support Bot | Merope-C</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/perc.css">
+  <script defer src="../js/main.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <nav class="container nav" aria-label="Primary navigation">
+    <a class="brand" href="../index.html">MEROPE<span>-C</span><span class="brandstar" aria-hidden="true"> ✦</span></a>
+    <div class="navlinks">
+      <a href="../index.html">Home</a><a href="../pages/art.html">Art</a><a href="../pages/lore.html">Lore</a>
+      <a href="../pages/perc.html" aria-current="page">PERC Bot</a><a href="../pages/anime.html">Anime</a>
+      <a href="../pages/twitch.html">Socials</a><a href="../pages/circle.html">My Circle</a><a href="../pages/anti-glonk.html">Anti-Glonk</a>
+    </div>
+  </nav>
+</header>
+<main class="container perc-site" id="top">
+  <section class="perc-hero" aria-labelledby="perc-title">
+    <div class="perc-intro">
+      <div class="eyebrow">PERC HOUSE / DISCORD</div>
+      <h1 id="perc-title">PERC HOUSE<br><em>SUPPORT BOT<span class="perc-spark"> ✦</span></em></h1>
+      <p class="perc-intro-lead">A private community turned competitive universe. PERC Bot tracks qualifying activity, manages rankings, powers rivalries, organizes events and remembers its champions.</p>
+      <p class="perc-name"><span class="perc-name-label">PERC stands for</span><strong>Patrick · Ella · Ryan · Cohen</strong></p>
+      <div class="perc-chip-row" aria-label="Project details"><span class="perc-chip">Version v1.0.02</span><span class="perc-chip perc-chip-beta">BETA</span><span class="perc-chip">Built by Coco</span></div>
+      <div class="actions"><a class="button" href="#commands">View member commands ↗</a><a class="button alt" href="#features">Explore the features</a></div>
+    </div>
+    <div class="perc-mascot-frame">
+      <div class="perc-halo" aria-hidden="true"></div>
+      <span class="perc-halo-star perc-halo-star-one" aria-hidden="true">✦</span><span class="perc-halo-star perc-halo-star-two" aria-hidden="true">✧</span>
+      <img src="../assets/perc-mascot.webp" width="760" height="760" alt="PERC House's cheerful cat-eared mascot with brown hair, blue ribbons and a blue-and-white outfit, on a transparent background">
+      <div class="perc-hero-caption">PERC HOUSE <span>✦</span> BETA PROJECT</div>
+    </div>
+  </section>
+  <figure class="perc-brand-banner">
+    <img src="../assets/perc-banner.webp" width="1600" height="563" alt="PERC House Support Bot v1.0.02 beta community project banner" loading="lazy">
+    <figcaption>Official PERC House Support Bot banner · v1.0.02 beta</figcaption>
+  </figure>
+  <div class="perc-facts" aria-label="PERC Bot at a glance">
+    <div><strong>06</strong><span>Ranking tiers</span></div>
+    <div><strong>01</strong><span>Mythic champion slot</span></div>
+    <div><strong>Monthly</strong><span>Competition cycles</span></div>
+    <div><strong>Nov 01</strong><span>Cycle 01 planned for 2026</span></div>
+  </div>
 
-<html lang="en"><head>
-<meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/>
-<meta content="Merope-C: art, stories, code, and community." name="description"/>
-<title>PERC Bot | Merope-C</title>
-<link href="../css/style.css" rel="stylesheet"/>
-<script defer="" src="../js/main.js"></script>
-</head><body><header class="topbar"><nav aria-label="Primary navigation" class="container nav"><a class="brand" href="../index.html">MEROPE<span>-C</span><span aria-hidden="true" class="brandstar"> ✦</span></a><div class="navlinks"><a href="../index.html">Home</a><a href="../pages/art.html">Art</a><a href="../pages/lore.html">Lore</a><a aria-current="page" href="../pages/perc.html">PERC Bot</a><a href="../pages/anime.html">Anime</a><a href="../pages/twitch.html">Socials</a><a href="../pages/circle.html">My Circle</a><a href="../pages/anti-glonk.html">Anti-Glonk</a></div></nav></header><main class="container"><header class="pagehead"><div class="eyebrow">Development · Discord</div><h1>PERC Bot</h1><p class="lead">A custom Python Discord bot for the PERC community, with monthly rankings, event tools and plenty of future ideas.</p></header><div class="cards compact"><div class="card"><h3>Monthly ranks</h3><p>Seasonal message rankings, live role changes, and long-term statistics.</p></div><div class="card"><h3>Events &amp; headcounts</h3><p>Tools for planning group activities and tracking attendance.</p></div><div class="card"><h3>Under development</h3><p>Diagnostics, automated status checks, achievements and more.</p></div></div><div class="notice">Features and commands change as the bot develops. A verified command list and live data can be added later.</div></main><footer class="footer"><div class="container"><span>© Merope-C · Built with HTML, CSS &amp; JavaScript</span><span><a href="../portfolio/index.html">Academic portfolio · In progress</a></span></div></footer></body></html>
+  <nav class="perc-toc" aria-label="PERC Bot sections"><a href="#features">Features</a><a href="#ranking">Ranks</a><a href="#competition">Competition</a><a href="#events">Events</a><a href="#commands">Commands</a><a href="#behind-the-bot">Technology</a><a href="#roadmap">Roadmap</a></nav>
+
+  <section class="perc-section" id="features">
+    <div class="eyebrow">01 / Overview</div><h2>Built for the people in the server.</h2>
+    <p class="perc-section-lead">This isn't a generic moderation utility. The bot turns everyday conversation into shared stories, friendly rivalries and group traditions — without making members manually manage their roles.</p>
+    <div class="perc-feature-grid">
+      <article class="perc-feature"><div class="perc-icon" aria-hidden="true">↗</div><h3>Dynamic standings</h3><p>Competitive positions shift as members overtake each other in eligible message activity. Discord roles update to reflect rank.</p></article>
+      <article class="perc-feature"><div class="perc-icon" aria-hidden="true">⌁</div><h3>Anti-spam scoring</h3><p>Rapid posts, duplicates and low-effort punctuation don't contribute to the leaderboard. Messages aren't automatically deleted for failing the count.</p></article>
+      <article class="perc-feature"><div class="perc-icon" aria-hidden="true">◇</div><h3>Long-term legacy</h3><p>Seasonal totals reset each month while lifetime progress, achievements and historical champions can be preserved.</p></article>
+    </div>
+  </section>
+
+  <section class="perc-section" id="ranking">
+    <div class="eyebrow">02 / Rarity system</div><h2>Six ranks. One peak.</h2>
+    <p class="perc-section-lead">Members start at Common. As the monthly leaderboard changes, promotions and demotions can happen without a manual request.</p>
+    <div class="perc-rank-list">
+      <div class="perc-rank perc-common"><span class="perc-rank-number">01</span><strong>Common</strong><span>Starting rank for new members</span></div>
+      <div class="perc-rank perc-uncommon"><span class="perc-rank-number">02</span><strong>Uncommon</strong><span>Growing participation</span></div>
+      <div class="perc-rank perc-rare"><span class="perc-rank-number">03</span><strong>Rare</strong><span>Consistently active members</span></div>
+      <div class="perc-rank perc-epic"><span class="perc-rank-number">04</span><strong>Epic</strong><span>Near the top of the standings</span></div>
+      <div class="perc-rank perc-legendary"><span class="perc-rank-number">05</span><strong>Legendary</strong><span>Extremely limited, prestigious tier</span></div>
+      <div class="perc-rank perc-mythic"><span class="perc-rank-number">06</span><strong>Mythic ✦</strong><span>One champion; unlocks at 20 server members</span></div>
+    </div>
+  </section>
+
+  <section class="perc-section" id="competition">
+    <div class="eyebrow">03 / PERC Cycles</div><h2>A fresh fight every month.</h2>
+    <div class="perc-split">
+      <article class="perc-panel perc-cycle-panel"><span class="perc-panel-top">NEXT ERA / PERC CYCLE 01</span><strong class="perc-big-date">NOV <span>01</span></strong><p>First official cycle scheduled for November 1, 2026. The period before that uses an accessible-message-history preseason leaderboard.</p><span class="perc-panel-note">Monthly reset · Lifetime statistics preserved</span></article>
+      <div class="perc-stack">
+        <article class="perc-small-panel"><h3>Takeover Arena</h3><p>Climbing past another member can trigger a takeover announcement with specially formatted embeds and graphics. Repeat clashes create rivalries, first takeovers, and revenge moments.</p><span class="perc-inline-command">/war</span><span class="perc-inline-command">/rival</span></article>
+        <article class="perc-small-panel"><h3>Hall of Fame & achievements</h3><p>Cycle winners can be recorded for posterity. Member profiles also recognize milestones, top-tier ranks and comeback achievements.</p><span class="perc-inline-command">/halloffame</span><span class="perc-inline-command">/profile</span></article>
+        <article class="perc-small-panel"><h3>PERC Coins</h3><p>A server currency tied to competition and activity. Rewards and a larger economy can be expanded with community input.</p><span class="perc-inline-command">/balance</span></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="perc-section" id="events">
+    <div class="eyebrow">04 / Community tools</div><h2>More than a leaderboard.</h2>
+    <div class="perc-feature-grid">
+      <article class="perc-feature"><div class="perc-icon" aria-hidden="true">⌚</div><h3>Events & headcounts</h3><p>Admins can create scheduled events. Members register by event ID, and attendance lists update as people join or leave.</p><span class="perc-inline-command">/headcount</span></article>
+      <article class="perc-feature"><div class="perc-icon" aria-hidden="true">★</div><h3>Temporary event roles</h3><p>Supported events can grant participants a temporary event role. Game-night headcounts work without requiring that role.</p></article>
+      <article class="perc-feature"><div class="perc-icon" aria-hidden="true">⚙</div><h3>Owner management</h3><p>Restricted tools cover role syncing, leaderboard maintenance, historical backfills, announcements and moderation. These aren't public commands.</p></article>
+    </div>
+  </section>
+
+  <section class="perc-section" id="commands">
+    <div class="eyebrow">05 / Bot commands</div><h2>For everyone in PERC.</h2>
+    <p class="perc-section-lead">A quick reference to public-facing commands described for v1.0.02. The bot's own <code>/commands</code> menu is the most reliable list as beta releases evolve.</p>
+    <div class="perc-command-grid">
+      <div class="perc-command"><code>/rank</code><span>Your current ranking</span></div>
+      <div class="perc-command"><code>/leaderboard</code><span>Seasonal standings</span></div>
+      <div class="perc-command"><code>/rival</code><span>Who's just ahead</span></div>
+      <div class="perc-command"><code>/profile</code><span>Stats and achievements</span></div>
+      <div class="perc-command"><code>/stats</code><span>Community activity stats</span></div>
+      <div class="perc-command"><code>/halloffame</code><span>Previous cycle champions</span></div>
+      <div class="perc-command"><code>/war</code><span>Takeover and rivalry history</span></div>
+      <div class="perc-command"><code>/balance</code><span>PERC Coins balance</span></div>
+      <div class="perc-command"><code>/headcount</code><span>Register for an event</span></div>
+      <div class="perc-command"><code>/gym</code><span>Toggle the Gym role</span></div>
+      <div class="perc-command"><code>/speak</code><span>Speak through the bot, subject to limits</span></div>
+      <div class="perc-command"><code>/commands</code><span>In-Discord command help</span></div>
+    </div>
+    <p class="smallprint perc-command-note">Some actions may require a running event, eligible server role, or configured channel. Owner-only tools are intentionally omitted here.</p>
+  </section>
+
+  <section class="perc-section" id="behind-the-bot">
+    <div class="eyebrow">06 / Under the hood</div><h2>Built by Coco. Hosted on NDGLU.</h2>
+    <div class="perc-split perc-tech-split">
+      <div class="perc-tech-copy"><p>PERC Bot is a modular Python project developed with <strong>discord.py</strong> and <strong>SQLite</strong>. It uses asynchronous Discord event handling and creates graphics for competitive announcements.</p><p>Its production home is <strong>NDGLU</strong>, a dedicated Linux (Kali) laptop. Merope-C itself is hosted separately on <strong>Polaris</strong>, the Dell PowerEdge R640 Ubuntu web server.</p><div class="perc-tech-tags" aria-label="Technologies"><span>Python</span><span>discord.py</span><span>SQLite</span><span>asyncio</span><span>Pillow</span><span>Linux</span><span>systemd</span><span>Git / GitHub</span></div></div>
+      <aside class="perc-system-card"><div class="perc-console-bar"><span></span><span></span><span></span> <small>PROJECT / ARCHITECTURE</small></div><div class="perc-system-line"><span>Developer</span><strong>Coco</strong></div><div class="perc-system-line"><span>Bot host</span><strong>NDGLU</strong></div><div class="perc-system-line"><span>Site host</span><strong>Polaris</strong></div><div class="perc-system-line"><span>Framework</span><strong>discord.py</strong></div><div class="perc-system-line"><span>Database</span><strong>SQLite</strong></div><div class="perc-system-line"><span>Release</span><strong>v1.0.02 / Beta</strong></div></aside>
+    </div>
+  </section>
+
+  <section class="perc-section" id="roadmap">
+    <div class="eyebrow">07 / Next updates</div><h2>Still evolving.</h2>
+    <div class="perc-feature-grid">
+      <article class="perc-feature"><div class="perc-icon" aria-hidden="true">◎</div><h3>Diagnostics & reliability</h3><p>Continued work on heartbeat monitoring, responsiveness, event-loop delays, slow database work and recovery visibility. Operational details remain owner-only.</p></article>
+      <article class="perc-feature"><div class="perc-icon" aria-hidden="true">▣</div><h3>Read-only website status</h3><p>Planned public online/offline indicator for PERC Bot on Merope-C, with detailed monitoring reserved for a secure administrator dashboard.</p></article>
+      <article class="perc-feature"><div class="perc-icon" aria-hidden="true">✧</div><h3>More community history</h3><p>Expanding the achievement library, cycle archives, rivalry statistics, and automatic reminders over time.</p></article>
+    </div>
+    <div class="notice">PERC Bot is a private-server beta. This page describes the project; it does not claim to show live Discord activity or current bot availability.</div>
+  </section>
+  <div class="perc-back"><a href="#top">↑ Back to top</a><a href="../pages/twitch.html">Coco's socials ↗</a></div>
+</main>
+<footer class="footer"><div class="container"><span>© Merope-C · PERC House Support Bot · Built by Coco</span><span><a href="../portfolio/index.html">Academic portfolio · In progress</a></span></div></footer>
+</body>
+</html>
