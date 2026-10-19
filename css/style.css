@@ -359,16 +359,16 @@ body>main,body>footer{z-index:1;position:relative}
 
 /* Position the code card inside the user-marked lower-left area (desktop reference). */
 .personal-concept .personal-concept-stage .personal-clouds-code-cover{
- left:calc(9% - 88px);bottom:-64px;width:clamp(170px,16vw,210px);
+ left:calc(9% - 12px);bottom:0px;width:clamp(170px,16vw,210px);
  padding:14px 17px;background:#091726f7;
 }
 @media (min-width:571px) and (max-width:900px){
  .personal-concept .personal-concept-stage .personal-clouds-code-cover{
-  left:calc(8% - 32px);bottom:-33px;width:175px;
+  left:calc(8% + 12px);bottom:1%;width:175px;
  }
 }
 @media (max-width:570px){
  .personal-concept .personal-concept-stage .personal-clouds-code-cover{
-  left:1%;bottom:-12px;width:142px;padding:10px 12px;
+  left:9%;bottom:3%;width:142px;padding:10px 12px;
  }
 }
