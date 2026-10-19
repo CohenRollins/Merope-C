@@ -74,6 +74,20 @@
   addField(details,'Wi-Fi network',info.wifi_name);addField(details,'Wi-Fi password',info.wifi_password);
   addField(details,'Apple Maps',info.apple_maps,'link');addField(details,'Google Maps',info.google_maps,'link');
   addField(details,'Extra notes',info.notes);
+  if(info.discord_invite){
+    try{
+      const invite=new URL(info.discord_invite);
+      const allowed=['discord.gg','discord.com'];
+      const pathOK=invite.hostname==='discord.gg'||(invite.hostname==='discord.com'&&invite.pathname.startsWith('/invite/'));
+      if(invite.protocol==='https:'&&allowed.includes(invite.hostname)&&pathOK){
+        const card=element('article',null,'access-detail');
+        card.append(element('h3','PERC Discord invite'));
+        const link=element('a','Join the PERC Discord ↗');
+        link.href=invite.href;link.target='_blank';link.rel='noopener noreferrer';
+        card.append(link);details.append(card);
+      }
+    }catch{}
+  }
   if(!details.children.length)details.append(element('p','Private house details have not been entered on the server yet.'));
   await renderVisitors();
   await renderPhotos();
