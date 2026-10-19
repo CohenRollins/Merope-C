@@ -390,5 +390,27 @@
   });
   $('anime-more-episodes').addEventListener('click',()=>{if(state.selected&&state.episodeMore&&!state.epLoading)loadEpisodes(state.episodePage+1,state.modalRun);});
   updateSavedCount();
+  const RESUME_KEY='merope_anime_recent_v1';
+  function renderResume(){
+    const root=$('anime-resume-list'),section=$('anime-resume');
+    if(!root||!section)return;
+    let data={};try{data=JSON.parse(localStorage.getItem(RESUME_KEY)||'{}')||{};}catch{}
+    const items=Object.values(data).filter(x=>x&&Number.isInteger(Number(x.mal_id))&&Number(x.seconds)>=5).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,6);
+    root.replaceChildren();section.hidden=items.length===0;
+    for(const item of items){
+      const card=text('button','','anime-resume-card');card.type='button';
+      const label=text('strong',item.title||'Anime');
+      const details=text('span',`Season ${item.season} · Episode ${item.episode} · ${Math.floor(item.seconds/60)}m watched`);
+      card.append(label,details);
+      if(item.duration>0){
+        const meter=document.createElement('progress');meter.max=item.duration;meter.value=Math.min(item.seconds,item.duration);meter.setAttribute('aria-label','Watch progress');card.append(meter);
+      }
+      card.addEventListener('click',()=>openDetail(saved[String(item.mal_id)]||STARTER_ANIME.find(a=>a.mal_id===Number(item.mal_id))||{mal_id:Number(item.mal_id),title:item.title,type:item.type},card));
+      root.append(card);
+    }
+  }
+  window.addEventListener('merope:watch-progress',renderResume);
+  window.addEventListener('storage',e=>{if(e.key===RESUME_KEY)renderResume();});
+  renderResume();
   loadCatalog();
 })();
