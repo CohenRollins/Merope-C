@@ -62,3 +62,17 @@
 @media(max-width:380px){
  .house-public-gallery .house-public-photo-grid{grid-template-columns:1fr!important}
 }
+
+/* Six recent public memories; compact responsive thumbnails. */
+.house-public-gallery .house-public-photo-grid{
+ grid-template-columns:repeat(6,minmax(0,1fr))!important;
+ gap:12px;
+}
+.house-public-gallery .house-public-photo{max-width:none}
+.house-public-gallery .house-public-photo img{height:135px!important}
+@media(max-width:1080px){
+ .house-public-gallery .house-public-photo-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+}
+@media(max-width:700px){
+ .house-public-gallery .house-public-photo-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
