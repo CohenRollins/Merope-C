@@ -1,128 +1,108 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#04070b">
-  <meta name="description" content="Explore anime series and films, save a watchlist, find episode information and official streaming links on Merope-C.">
-  <title>Anime Hub | Merope-C</title>
-  <link rel="stylesheet" href="../css/style.css">
-  <link rel="stylesheet" href="../css/anime.css">
-  <script defer src="../js/main.js"></script>
-  <script defer src="../js/anime.js"></script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta content="#04070b" name="theme-color"/>
+<meta content="Explore anime series and films, save a watchlist, find episode information and official streaming links on Merope-C." name="description"/>
+<title>Anime Hub | Merope-C</title>
+<link href="../css/style.css" rel="stylesheet"/>
+<link href="../css/anime.css" rel="stylesheet"/>
+<script defer="" src="../js/main.js"></script>
+<script defer="" src="../js/anime.js"></script>
 </head>
 <body>
-  <a href="#anime-main" class="anime-skip">Skip to anime library</a>
-  <header class="topbar">
-    <nav class="container nav" aria-label="Primary navigation">
-      <a class="brand" href="../index.html">MEROPE<span>-C</span><span aria-hidden="true" class="brandstar"> ✦</span></a>
-      <div class="navlinks">
-        <a href="../index.html">Home</a>
-        <a href="art.html">Art</a>
-        <a href="lore.html">Lore</a>
-        <a href="perc.html">PERC Bot</a>
-        <a aria-current="page" href="anime.html">Anime</a>
-        <a href="twitch.html">Socials</a>
-        <a href="circle.html">My Circle</a>
-        <a href="anti-glonk.html">Anti-Glonk</a>
-      </div>
-    </nav>
-  </header>
-
-  <main id="anime-main" class="container anime-page">
-    <div class="anime-intro">
-      <div>
-        <div class="eyebrow">Anime · Series · Films</div>
-        <h1>Anime <em>Hub.</em></h1>
-        <p class="lead">Explore Japanese animation, discover something new, and build your own watchlist. One little corner of the Merope-C universe.</p>
-      </div>
-      <div class="anime-intro-mark" aria-hidden="true"><span>星</span><span>✧</span></div>
-    </div>
-
-    <section class="anime-library" aria-labelledby="anime-library-title">
-      <div class="anime-library-head">
-        <div>
-          <span class="eyebrow">The archive</span>
-          <h2 id="anime-library-title">Discover your next story.</h2>
-        </div>
-        <div class="anime-count" id="anime-count" aria-live="polite">Loading catalog…</div>
-      </div>
-
-      <form id="anime-search-form" class="anime-search" role="search">
-        <label for="anime-search-input" class="anime-visually-hidden">Search anime titles</label>
-        <span aria-hidden="true" class="anime-search-icon">⌕</span>
-        <input id="anime-search-input" name="q" type="search" placeholder="Search anime, movies, titles…" autocomplete="off" enterkeyhint="search" minlength="2">
-        <button type="button" id="anime-clear" class="anime-clear" hidden>Clear</button>
-        <button type="submit" id="anime-search-submit" class="anime-search-submit">Search</button>
-      </form>
-
-      <div class="anime-browse" role="group" aria-label="Catalog section">
-        <button type="button" class="anime-tab is-active" data-anime-mode="top" aria-pressed="true">Top anime</button>
-        <button type="button" class="anime-tab" data-anime-mode="airing" aria-pressed="false">Airing now</button>
-        <button type="button" class="anime-tab" data-anime-mode="movie" aria-pressed="false">Movies</button>
-        <button type="button" class="anime-tab" data-anime-mode="saved" aria-pressed="false">My list <span id="anime-saved-count">0</span></button>
-      </div>
-
-      <div class="anime-filterbar">
-        <div class="anime-genres" id="anime-genres" role="group" aria-label="Genre filter">
-          <button class="anime-chip is-active" data-anime-genre="all" aria-pressed="true" type="button">All genres</button>
-          <button class="anime-chip" data-anime-genre="1" aria-pressed="false" type="button">Action</button>
-          <button class="anime-chip" data-anime-genre="2" aria-pressed="false" type="button">Adventure</button>
-          <button class="anime-chip" data-anime-genre="10" aria-pressed="false" type="button">Fantasy</button>
-          <button class="anime-chip" data-anime-genre="24" aria-pressed="false" type="button">Sci-Fi</button>
-          <button class="anime-chip" data-anime-genre="37" aria-pressed="false" type="button">Supernatural</button>
-          <button class="anime-chip" data-anime-genre="8" aria-pressed="false" type="button">Drama</button>
-          <button class="anime-chip" data-anime-genre="4" aria-pressed="false" type="button">Comedy</button>
-        </div>
-        <label class="anime-order-label" for="anime-order">Sort
+<a class="anime-skip" href="#anime-main">Skip to anime library</a>
+<header class="topbar">
+<nav aria-label="Main navigation" class="container nav"><a class="brand" href="../index.html">MEROPE<span>-C</span><span aria-hidden="true" class="brandstar"> ✦</span></a><div class="navlinks"><a href="../portfolio/index.html">School / Portfolio</a><a aria-current="page" href="../pages/personal.html">Personal</a><a href="../pages/house.html">PERC House</a></div></nav>
+</header>
+<main class="container anime-page" id="anime-main"><div class="section-crumb"><a href="../pages/personal.html">← Personal</a><span> / Anime Hub</span></div>
+<div class="anime-intro">
+<div>
+<div class="eyebrow">Anime · Series · Films</div>
+<h1>Anime <em>Hub.</em></h1>
+<p class="lead">Explore Japanese animation, discover something new, and build your own watchlist. One little corner of the Merope-C universe.</p>
+</div>
+<div aria-hidden="true" class="anime-intro-mark"><span>星</span><span>✧</span></div>
+</div>
+<section aria-labelledby="anime-library-title" class="anime-library">
+<div class="anime-library-head">
+<div>
+<span class="eyebrow">The archive</span>
+<h2 id="anime-library-title">Discover your next story.</h2>
+</div>
+<div aria-live="polite" class="anime-count" id="anime-count">Loading catalog…</div>
+</div>
+<form class="anime-search" id="anime-search-form" role="search">
+<label class="anime-visually-hidden" for="anime-search-input">Search anime titles</label>
+<span aria-hidden="true" class="anime-search-icon">⌕</span>
+<input autocomplete="off" enterkeyhint="search" id="anime-search-input" minlength="2" name="q" placeholder="Search anime, movies, titles…" type="search"/>
+<button class="anime-clear" hidden="" id="anime-clear" type="button">Clear</button>
+<button class="anime-search-submit" id="anime-search-submit" type="submit">Search</button>
+</form>
+<div aria-label="Catalog section" class="anime-browse" role="group">
+<button aria-pressed="true" class="anime-tab is-active" data-anime-mode="top" type="button">Top anime</button>
+<button aria-pressed="false" class="anime-tab" data-anime-mode="airing" type="button">Airing now</button>
+<button aria-pressed="false" class="anime-tab" data-anime-mode="movie" type="button">Movies</button>
+<button aria-pressed="false" class="anime-tab" data-anime-mode="saved" type="button">My list <span id="anime-saved-count">0</span></button>
+</div>
+<div class="anime-filterbar">
+<div aria-label="Genre filter" class="anime-genres" id="anime-genres" role="group">
+<button aria-pressed="true" class="anime-chip is-active" data-anime-genre="all" type="button">All genres</button>
+<button aria-pressed="false" class="anime-chip" data-anime-genre="1" type="button">Action</button>
+<button aria-pressed="false" class="anime-chip" data-anime-genre="2" type="button">Adventure</button>
+<button aria-pressed="false" class="anime-chip" data-anime-genre="10" type="button">Fantasy</button>
+<button aria-pressed="false" class="anime-chip" data-anime-genre="24" type="button">Sci-Fi</button>
+<button aria-pressed="false" class="anime-chip" data-anime-genre="37" type="button">Supernatural</button>
+<button aria-pressed="false" class="anime-chip" data-anime-genre="8" type="button">Drama</button>
+<button aria-pressed="false" class="anime-chip" data-anime-genre="4" type="button">Comedy</button>
+</div>
+<label class="anime-order-label" for="anime-order">Sort
           <select id="anime-order"><option value="rated">Top rated</option><option value="popular">Most popular</option></select>
-        </label>
-      </div>
-
-      <p class="anime-feedback" id="anime-feedback" role="status" aria-live="polite">Finding your next anime…</p>
-      <div class="anime-grid" id="anime-grid" aria-label="Anime results"></div>
-      <div class="anime-more-row"><button id="anime-load-more" class="button alt" type="button" hidden>Load more titles ↓</button></div>
-    </section>
-
-    <aside class="anime-disclaimer">
-      <div aria-hidden="true">✧</div>
-      <p><strong>Your list stays yours.</strong> Saved titles and episode checkmarks live in this browser. The catalog uses <a href="https://jikan.moe/" target="_blank" rel="noopener noreferrer">Jikan / MyAnimeList data</a> and needs an internet connection. Trailers and official watch links are supplied when available; this site does not host commercial episodes.</p>
-    </aside>
-  </main>
-
-  <dialog id="anime-dialog" class="anime-dialog" aria-labelledby="anime-detail-title">
-    <div class="anime-dialog-shell">
-      <button id="anime-dialog-close" class="anime-dialog-close" type="button" aria-label="Close anime details">✕</button>
-      <div class="anime-detail-top">
-        <div class="anime-detail-poster"><img id="anime-detail-image" src="" alt="" loading="lazy"></div>
-        <div class="anime-detail-copy">
-          <div class="eyebrow" id="anime-detail-type">Anime</div>
-          <h2 id="anime-detail-title"></h2>
-          <p id="anime-detail-alt" class="anime-detail-alt"></p>
-          <div id="anime-detail-facts" class="anime-detail-facts"></div>
-          <p id="anime-detail-synopsis" class="anime-detail-synopsis"></p>
-          <div class="anime-detail-actions">
-            <button id="anime-detail-save" class="button" type="button">＋ Save to my list</button>
-            <button id="anime-detail-trailer" class="button alt" type="button" hidden>▶ Watch official trailer</button>
-            <a id="anime-detail-mal" class="button alt" target="_blank" rel="noopener noreferrer" href="https://myanimelist.net/">MyAnimeList ↗</a>
-          </div>
-        </div>
-      </div>
-      <div id="anime-trailer-area" class="anime-trailer-area" hidden></div>
-      <section class="anime-detail-section" aria-labelledby="anime-streaming-title">
-        <h3 id="anime-streaming-title">Where to watch</h3>
-        <p class="smallprint">Official provider links may depend on your region or subscription. Search links don't guarantee availability.</p>
-        <div id="anime-detail-streaming" class="anime-streaming-links"><span class="anime-detail-muted">Checking available services…</span></div>
-      </section>
-      <section class="anime-detail-section" id="anime-episodes-section" aria-labelledby="anime-episodes-title">
-        <div class="anime-episodes-header"><h3 id="anime-episodes-title">Episodes</h3><span id="anime-episodes-progress" class="anime-detail-muted"></span></div>
-        <p class="smallprint">Mark episodes you've watched. This is a personal checklist, not an episode video player.</p>
-        <div id="anime-detail-episodes" class="anime-episode-list"></div>
-        <button type="button" id="anime-more-episodes" class="button alt anime-more-episodes" hidden>More episodes ↓</button>
-      </section>
-    </div>
-  </dialog>
-
-  <footer class="footer"><div class="container"><span>© Merope-C · Created on Polaris</span><span><a href="../portfolio/index.html">Class portfolio (early placeholder)</a> · <a href="circle.html">My Circle</a></span></div></footer>
+</label>
+</div>
+<p aria-live="polite" class="anime-feedback" id="anime-feedback" role="status">Finding your next anime…</p>
+<div aria-label="Anime results" class="anime-grid" id="anime-grid"></div>
+<div class="anime-more-row"><button class="button alt" hidden="" id="anime-load-more" type="button">Load more titles ↓</button></div>
+</section>
+<aside class="anime-disclaimer">
+<div aria-hidden="true">✧</div>
+<p><strong>Your list stays yours.</strong> Saved titles and episode checkmarks live in this browser. The catalog uses <a href="https://jikan.moe/" rel="noopener noreferrer" target="_blank">Jikan / MyAnimeList data</a> and needs an internet connection. Trailers and official watch links are supplied when available; this site does not host commercial episodes.</p>
+</aside>
+</main>
+<dialog aria-labelledby="anime-detail-title" class="anime-dialog" id="anime-dialog">
+<div class="anime-dialog-shell">
+<button aria-label="Close anime details" class="anime-dialog-close" id="anime-dialog-close" type="button">✕</button>
+<div class="anime-detail-top">
+<div class="anime-detail-poster"><img alt="" id="anime-detail-image" loading="lazy" src=""/></div>
+<div class="anime-detail-copy">
+<div class="eyebrow" id="anime-detail-type">Anime</div>
+<h2 id="anime-detail-title"></h2>
+<p class="anime-detail-alt" id="anime-detail-alt"></p>
+<div class="anime-detail-facts" id="anime-detail-facts"></div>
+<p class="anime-detail-synopsis" id="anime-detail-synopsis"></p>
+<div class="anime-detail-actions">
+<button class="button" id="anime-detail-save" type="button">＋ Save to my list</button>
+<button class="button alt" hidden="" id="anime-detail-trailer" type="button">▶ Watch official trailer</button>
+<a class="button alt" href="https://myanimelist.net/" id="anime-detail-mal" rel="noopener noreferrer" target="_blank">MyAnimeList ↗</a>
+</div>
+</div>
+</div>
+<div class="anime-trailer-area" hidden="" id="anime-trailer-area"></div>
+<section aria-labelledby="anime-streaming-title" class="anime-detail-section">
+<h3 id="anime-streaming-title">Where to watch</h3>
+<p class="smallprint">Official provider links may depend on your region or subscription. Search links don't guarantee availability.</p>
+<div class="anime-streaming-links" id="anime-detail-streaming"><span class="anime-detail-muted">Checking available services…</span></div>
+</section>
+<section aria-labelledby="anime-episodes-title" class="anime-detail-section" id="anime-episodes-section">
+<div class="anime-episodes-header"><h3 id="anime-episodes-title">Episodes</h3><span class="anime-detail-muted" id="anime-episodes-progress"></span></div>
+<p class="smallprint">Mark episodes you've watched. This is a personal checklist, not an episode video player.</p>
+<div class="anime-episode-list" id="anime-detail-episodes"></div>
+<button class="button alt anime-more-episodes" hidden="" id="anime-more-episodes" type="button">More episodes ↓</button>
+</section>
+</div>
+</dialog>
+<footer class="footer"><div class="container"><span>© Merope-C · Created on Polaris</span><span><a href="../portfolio/index.html">Class portfolio (early placeholder)</a> · <a href="circle.html">My Circle</a></span></div></footer>
 </body>
 </html>

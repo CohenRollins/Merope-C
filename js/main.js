@@ -29,3 +29,19 @@ filterButtons.forEach(button => {
   if (typeof reduceMotion.addEventListener === 'function') reduceMotion.addEventListener('change', updateStars);
   updateStars();
 })();
+
+
+// v0.6: deterministic, lightweight blue/white glints behind website content.
+(() => {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const positions = [[8,19],[23,44],[38,15],[56,61],[72,27],[87,55],[92,13],[13,76],[31,91],[68,84],[48,36],[82,94]];
+  positions.forEach(([x,y], i) => {
+    const node=document.createElement('span');
+    node.className='star-glint';
+    node.setAttribute('aria-hidden','true');
+    node.style.left=x+'%'; node.style.top=y+'%';
+    node.style.setProperty('--glint-delay', `${(i*1.19-6.3).toFixed(2)}s`);
+    node.style.setProperty('--glint-duration', `${6+(i%4)*1.13}s`);
+    document.body.appendChild(node);
+  });
+})();
