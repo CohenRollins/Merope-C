@@ -184,3 +184,9 @@ body>main,body>footer{z-index:1;position:relative}
 .personal-center span{color:#8bd7ff;padding-left:4px}.personal-point{position:absolute;color:#b4e1fa;font-size:.75rem;letter-spacing:.2em;font-weight:700;text-shadow:0 0 14px #6aa9ee76}
 .point-game{left:12%;top:18%}.point-art{right:16%;top:21%}.point-code{left:16%;bottom:21%}.point-anime{right:12%;bottom:19%}
 .personal-feature-graphic .personal-orbit-clouds{position:absolute;width:80px;height:80px;bottom:6px;right:8px;object-fit:contain;filter:drop-shadow(0 4px 14px #0007)}
+
+/* PERC House photo album preview, images themselves never ship to the static website */
+.house-photo-banner{display:grid;grid-template-columns:145px 1fr;align-items:center;gap:30px;padding:30px;border:1px solid #365b76;background:linear-gradient(125deg,#102638,#0b141e);border-radius:19px}
+.house-photo-icon{font-size:6rem;text-align:center;line-height:1;color:#a4dcff;text-shadow:0 0 45px #3893dd80}
+.house-photo-banner h3{font-size:1.7rem;margin:0 0 5px}.house-photo-banner p{color:#b7cedc;margin-bottom:18px}
+@media(max-width:620px){.house-photo-banner{grid-template-columns:1fr}.house-photo-icon{font-size:4rem;text-align:left}}

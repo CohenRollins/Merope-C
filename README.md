@@ -1,3 +1,7 @@
+# Current release: Merope-C v0.9
+
+For the latest deployment instructions and features, see **`UPDATE-v0.9.md`** and **`HOUSE-PHOTOS-START-HERE.md`**. Existing v0.8 installation notes follow below for reference.
+
 # Merope-C website (v0.8)
 
 The latest update is documented in **UPDATE-v0.8.md**. Resident access has its own **HOUSE-PRIVATE-SETUP.md**. The current site still deploys to Polaris as static HTML/CSS/JS with Nginx, while the art admin and resident service run privately as separate Python processes. Never publish private house details in GitHub.

@@ -46,11 +46,14 @@ def startdb():
     prep()
     with connect() as c:
         c.execute('CREATE TABLE IF NOT EXISTS art (id TEXT PRIMARY KEY, title TEXT NOT NULL, description TEXT NOT NULL DEFAULT "", src TEXT NOT NULL, source_file TEXT NOT NULL DEFAULT "", file_date TEXT NOT NULL DEFAULT "", date_type TEXT NOT NULL DEFAULT "archive-modified", tags TEXT NOT NULL DEFAULT "[]", artist TEXT NOT NULL DEFAULT "", characters TEXT NOT NULL DEFAULT "", notes TEXT NOT NULL DEFAULT "", permission_confirmed INTEGER NOT NULL DEFAULT 0, published INTEGER NOT NULL DEFAULT 1, uploaded INTEGER NOT NULL DEFAULT 0, sha256 TEXT NOT NULL DEFAULT "")')
-        count=c.execute('SELECT COUNT(*) FROM art').fetchone()[0]
-        if count==0:
-            source=json.loads((ROOT/'data'/'gallery.json').read_text(encoding='utf-8'))
-            for a in source:
-                put(c,a,create=True)
+        c.execute('CREATE TABLE IF NOT EXISTS deleted_art (id TEXT PRIMARY KEY)')
+        # New bundled art appears after a service restart without overwriting
+        # edits already made in the admin. Removed entries stay removed.
+        source=json.loads((ROOT/'data'/'gallery.json').read_text(encoding='utf-8'))
+        for a in source:
+            present=c.execute('SELECT 1 FROM art WHERE id=?',(a['id'],)).fetchone()
+            removed=c.execute('SELECT 1 FROM deleted_art WHERE id=?',(a['id'],)).fetchone()
+            if not present and not removed:put(c,a,create=True)
     os.chmod(DB,0o600)
 
 def validated(a):
@@ -179,6 +182,7 @@ class Handler(BaseHTTPRequestHandler):
                         r=c.execute('SELECT uploaded,src FROM art WHERE id=?',(ident,)).fetchone()
                         if not r:raise ValueError('Entry not found')
                         c.execute('DELETE FROM art WHERE id=?',(ident,))
+                        c.execute('INSERT OR IGNORE INTO deleted_art (id) VALUES (?)',(ident,))
                     # Never automatically delete any original or uploaded image; orphaned files can be cleaned after backup.
                     self.send(200,{'ok':True});return
                 if path.endswith('upload'):
