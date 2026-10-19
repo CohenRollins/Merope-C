@@ -323,9 +323,9 @@ body>main,body>footer{z-index:1;position:relative}
 /* Clouds integrated with the personal hero: larger, pulled toward the text. */
 @media (min-width:901px){
   .personal-concept .personal-concept-stage .personal-concept-clouds{
-    width:clamp(980px,84vw,1320px);
+    width:clamp(1040px,89vw,1410px);
     right:4%;
-    bottom:-42px;
+    bottom:-7px;
     z-index:2;
     max-height:none;
   }
