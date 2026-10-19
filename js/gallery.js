@@ -10,6 +10,8 @@
   let previousSnapshot = '';
   let activeSource = '';
   let loading = false;
+  const sourceBadge = document.getElementById('art-data-source');
+  function showSource(name) { if(sourceBadge) { sourceBadge.textContent=name==='live'?'● Live gallery · saved admin edits appear here':'○ Static gallery · admin edits will NOT appear until the live API is connected'; sourceBadge.dataset.source=name; } }
   const labels = { commission: 'Commission', artfight: 'ArtFight', 'my-character': 'My character', 'other-person': "Someone else’s character", sketch: 'Sketch' };
   const mk = (tag, cls, text) => { const e = document.createElement(tag); if(cls)e.className=cls; if(text!==undefined)e.textContent=text; return e; };
   function render() {
@@ -47,7 +49,7 @@
       if(!Array.isArray(fresh))throw Error('invalid gallery');
       const snapshot=JSON.stringify(fresh);
       if(snapshot!==previousSnapshot || activeSource!=='live') {
-        items=fresh;previousSnapshot=snapshot;activeSource='live';render();
+        items=fresh;previousSnapshot=snapshot;activeSource='live';showSource('live');render();
       }
     } catch {
       // Use the static gallery only until live data is available. Never replace
@@ -57,7 +59,7 @@
           const r=await fetch('../data/gallery.json', {cache:'no-store'});
           if(!r.ok)throw Error('no fallback');
           const fresh=await r.json();
-          items=fresh;previousSnapshot=JSON.stringify(fresh);activeSource='static';render();
+          items=fresh;previousSnapshot=JSON.stringify(fresh);activeSource='static';showSource('static');render();
         } catch { empty.hidden=false;empty.textContent='Could not load the artwork list.'; }
       }
     } finally {loading=false;}
