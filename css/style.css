@@ -286,3 +286,16 @@ body>main,body>footer{z-index:1;position:relative}
 .personal-concept-stage .personal-concept-clouds{right:-11%;bottom:-45px;width:min(120%,710px);max-height:580px;height:auto;object-fit:contain;object-position:right bottom;filter:drop-shadow(0 14px 25px #000a)}
 @media(max-width:900px){.personal-concept-stage .personal-concept-clouds{right:-3%;bottom:-20px;width:min(110%,620px);max-height:510px}}
 @media(max-width:570px){.personal-concept-stage .personal-concept-clouds{right:-5%;bottom:-10px;width:110%;max-height:400px}}
+
+/* Wide illustration-led personal hero, matching the user reference. */
+@media(min-width:901px){
+.personal-concept .personal-concept-hero{grid-template-columns:minmax(0, .97fr) minmax(0,1.03fr);min-height:560px;position:relative;gap:16px;padding-bottom:38px}
+.personal-concept .personal-concept-hero .personal-hero-copy{z-index:5;align-self:center}
+.personal-concept .personal-concept-hero .personal-hero-copy h1{font-size:clamp(4rem,7vw,7rem)}
+.personal-concept-stage{height:550px}
+.personal-concept-stage .personal-concept-orbit{inset:40px -12% 45px -8%;opacity:.45;border-radius:50%;background:radial-gradient(ellipse at center,#12426838,transparent 70%);box-shadow:none}
+.personal-concept-stage .personal-concept-orbit::before,.personal-concept-stage .personal-concept-orbit::after{opacity:.55}
+.personal-concept-stage .personal-concept-clouds{width:clamp(730px,66vw,1050px);max-height:none;right:-20%;bottom:-55px;object-position:right bottom;filter:drop-shadow(0 15px 29px #0008)}
+.personal-concept .personal-concept-hero .personal-hero-copy .actions{position:relative;z-index:6}
+}
+@media(max-width:900px){.personal-concept-stage .personal-concept-clouds{width:min(120%,650px);max-height:none;bottom:-18px}}
