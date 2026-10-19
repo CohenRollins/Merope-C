@@ -85,6 +85,39 @@
     if(['mp4','webm','hls'].includes(x.type)) {
       const video=el('video','anime-real-video');video.controls=true;video.playsInline=true;video.preload='metadata';
       frame.append(video);
+      const tools=el('div','anime-native-tools');
+      const rewind=el('button','','−10 seconds'),forward=el('button','', '+10 seconds');
+      const speed=el('select');speed.setAttribute('aria-label','Playback speed');
+      for(const rate of [0.75,1,1.25,1.5,2]){const opt=el('option','',rate+'×');opt.value=String(rate);speed.append(opt);}
+      rewind.type=forward.type='button';
+      rewind.addEventListener('click',()=>{video.currentTime=Math.max(0,video.currentTime-10);});
+      forward.addEventListener('click',()=>{video.currentTime=Math.min(Number.isFinite(video.duration)?video.duration:video.currentTime+10,video.currentTime+10);});
+      speed.addEventListener('change',()=>{video.playbackRate=Number(speed.value)||1;});
+      const captionLabel=el('label','anime-caption-label','Subtitles (WebVTT)');
+      const captionInput=el('input');captionInput.type='file';captionInput.accept='.vtt,text/vtt';
+      const clearCaption=el('button','','Remove subtitles');clearCaption.type='button';
+      let captionUrl='';
+      const removeCaption=()=>{
+        video.querySelectorAll('track[data-personal-caption]').forEach(t=>t.remove());
+        if(captionUrl){URL.revokeObjectURL(captionUrl);captionUrl='';}
+        clearCaption.hidden=true;
+      };
+      clearCaption.hidden=true;clearCaption.addEventListener('click',()=>{removeCaption();captionInput.value='';});
+      captionInput.addEventListener('change',()=>{
+        removeCaption();
+        const file=captionInput.files?.[0];
+        if(!file)return;
+        if(file.size>2*1024*1024||!/\.vtt$/i.test(file.name)){note.textContent='Use a .vtt subtitle file smaller than 2 MB.';return;}
+        captionUrl=URL.createObjectURL(file);
+        const track=el('track');track.kind='subtitles';track.label='Uploaded subtitles';track.srclang='en';track.default=true;track.src=captionUrl;track.dataset.personalCaption='true';video.append(track);
+        track.addEventListener('load',()=>{track.track.mode='showing';},{once:true});
+        clearCaption.hidden=false;note.textContent='Subtitles loaded from this device.';
+      });
+      captionLabel.append(captionInput);
+      tools.append(rewind,forward,speed,captionLabel,clearCaption);
+      frame.after(tools);
+      const teardown=()=>{removeCaption();tools.remove();};
+      video.addEventListener('emptied',teardown,{once:true});
       const key=String(current.mal_id)+'/'+x.season+'/'+x.episode+'/'+x.audio+'/'+url;
       video.addEventListener('loadedmetadata',()=>{const t=Number(progress[key]||0);if(t>10&&t<video.duration-10)video.currentTime=t;});
       video.addEventListener('timeupdate',()=>{
@@ -97,9 +130,12 @@
         }
       });
       video.addEventListener('ended',()=>{progress[key]=0;save(PROGRESS,progress);delete history[String(current.mal_id)];save(HISTORY,history);window.dispatchEvent(new Event('merope:watch-progress'));});
-      video.addEventListener('error',()=>{note.textContent='This source could not play. Try another source.';});
+      video.addEventListener('waiting',()=>{note.textContent='Buffering video…';});
+      video.addEventListener('playing',()=>{note.textContent='Playing configured video.';});
+      video.addEventListener('stalled',()=>{note.textContent='Playback has stalled. Check your connection or try another authorized source.';});
+      video.addEventListener('error',()=>{note.textContent='Video could not be decoded or downloaded. Check the media URL and format.';});
       if(x.type==='hls'&&!video.canPlayType('application/vnd.apple.mpegurl')){
-        if(window.Hls?.isSupported()){hls=new Hls();hls.loadSource(url);hls.attachMedia(video);}
+        if(window.Hls?.isSupported()){hls=new Hls();hls.on(Hls.Events.ERROR,(_,data)=>{if(data.fatal){note.textContent='HLS playback failed: '+(data.details||'stream unavailable')+'.';try{hls.destroy();}catch{}hls=null;}});hls.loadSource(url);hls.attachMedia(video);}
         else note.textContent='HLS support is unavailable in this browser. Try a different source.';
       }else video.src=url;
       return;
@@ -155,7 +191,7 @@
     wrap.append(bar,playback);root.append(wrap);
     let active=[];
     const persist=(key)=>{prefs[mal]={season:Number(season.value),episode:Number(episode.value),audio:audio.value,provider:key||''};save(PREFS,prefs);};
-    const resetFrame=()=>{stop();frame.replaceChildren(el('div','anime-embed-placeholder','Choose a source, then click Load selected player.'));note.textContent='';};
+    const resetFrame=()=>{stop();frame.parentElement?.querySelectorAll('.anime-native-tools').forEach(n=>n.remove());frame.replaceChildren(el('div','anime-embed-placeholder','Choose a source, then click Load selected player.'));note.textContent='';};
     function populate(keepPrevious=true){
       const old=keepPrevious?server.value:'';
       const s=Number(season.value),e=Number(episode.value);
