@@ -39,7 +39,7 @@
    clearInterval(ticker);
    if(items.length>1)ticker=setInterval(()=>{
      if(!document.hidden)navigate(1);
-   },12000);
+   },7000);
  }
  async function load(){
    let data=null;
