@@ -190,3 +190,27 @@ body>main,body>footer{z-index:1;position:relative}
 .house-photo-icon{font-size:6rem;text-align:center;line-height:1;color:#a4dcff;text-shadow:0 0 45px #3893dd80}
 .house-photo-banner h3{font-size:1.7rem;margin:0 0 5px}.house-photo-banner p{color:#b7cedc;margin-bottom:18px}
 @media(max-width:620px){.house-photo-banner{grid-template-columns:1fr}.house-photo-icon{font-size:4rem;text-align:left}}
+
+/* v1.0: three compact hover menus, with keyboard and touch-friendly focus. */
+.topbar .navlinks{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.nav-group{position:relative;display:block}
+.nav-group>.nav-main-link{display:flex;align-items:center;gap:7px;white-space:nowrap;padding:10px 13px}
+.nav-caret{font-size:1rem;color:#8fd1ff;transition:transform .2s}
+.nav-group:hover .nav-caret,.nav-group:focus-within .nav-caret{transform:rotate(180deg)}
+.nav-dropdown{display:flex;flex-direction:column;position:absolute;right:0;top:calc(100% - 2px);min-width:205px;max-height:min(72vh,450px);overflow:auto;padding:8px;border-radius:14px;border:1px solid #385a75;background:#0a1726f7;box-shadow:0 20px 40px #000b;opacity:0;visibility:hidden;pointer-events:none;transform:translateY(7px);transition:transform .18s,opacity .18s,visibility .18s;z-index:99;backdrop-filter:blur(16px)}
+.nav-group:hover .nav-dropdown,.nav-group:focus-within .nav-dropdown{opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0)}
+.nav-dropdown a{display:block!important;font-weight:600;padding:9px 12px!important;border:0!important;border-radius:8px;font-size:.85rem;white-space:nowrap;color:#c7e2f3!important}
+.nav-dropdown a:hover,.nav-dropdown a:focus-visible{background:#1a3b54!important;color:white!important}
+@media(max-width:700px){.topbar .navlinks{gap:3px}.nav-group>.nav-main-link{font-size:.77rem;padding:8px 8px}.nav-dropdown{right:auto;left:0;min-width:170px}.nav-group:last-child .nav-dropdown{right:0;left:auto}}
+/* Flip cards: same original dimensions, border, background and front layout. */
+.device-grid .device-flip{min-height:0;position:relative;perspective:1100px;cursor:pointer}
+.device-grid .device-flip:focus-visible{outline:3px solid #9edcff;outline-offset:4px}
+.device-flip-inner{display:grid;grid-template-areas:'face';width:100%;height:100%;transition:transform .55s cubic-bezier(.22,.7,.25,1);transform-style:preserve-3d}
+.device-flip.is-flipped .device-flip-inner{transform:rotateY(180deg)}
+.device-flip-front,.device-flip-back{grid-area:face;backface-visibility:hidden;display:flex;flex-direction:column}
+.device-flip-front .pill{align-self:flex-start;margin-top:auto}
+.device-flip-back{transform:rotateY(180deg);justify-content:space-between}
+.device-flip-back h3{margin:16px 0;font-size:1.32rem}
+.device-flip-back p{color:#b8d0e0}
+.device-flip-back .smallprint{font-size:.8rem;color:#86cbf6}
+@media(prefers-reduced-motion:reduce){.device-flip-inner{transition:none}}

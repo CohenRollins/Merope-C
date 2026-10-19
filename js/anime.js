@@ -339,7 +339,6 @@
       if(token!==state.modalRun||!details.data)return;
       state.selected=normalize({...a,...details.data});
       const updated=state.selected;
-      setDetailPlayer(updated);
       $('anime-detail-synopsis').textContent=updated.synopsis||'Synopsis not available.';
       setFacts(updated);updateSaveButton();
       const detailTrailer=updated.trailer?.youtube_id;
@@ -350,47 +349,17 @@
     state.modalRun++;
     $('anime-trailer-area').replaceChildren();
     $('anime-trailer-area').hidden=true;
+    window.meropePlayer?.close();
     $('anime-detail-player').replaceChildren();
     if(dialog.open)dialog.close();
     state.trigger?.focus({preventScroll:true});
     state.selected=null;
   }
 
-  const OFFICIAL_PLAYLISTS = new Map([
-    ['god mars','PLj2Ugc-vxcWGDWFMIlD5i-gz3u2s4tMa-'],
-    ['we rent tsukumogami','PLj2Ugc-vxcWHnPJDXLZMmBqVm37XnI06x'],
-    ['the gutsy frog','PLj2Ugc-vxcWG_zTnv_Bzlo_T9tG2xDmzD']
-  ]);
-  function makeOfficialIframe(playlist,title){
-    if(!/^[a-zA-Z0-9_-]{12,64}$/.test(playlist))return null;
-    const f=document.createElement('iframe');
-    f.title=title+' | Official full episodes on YouTube';
-    f.src='https://www.youtube-nocookie.com/embed/videoseries?list='+encodeURIComponent(playlist)+'&rel=0';
-    f.allow='autoplay; encrypted-media; picture-in-picture; fullscreen';
-    f.allowFullscreen=true;
-    f.referrerPolicy='strict-origin-when-cross-origin';
-    f.loading='lazy';
-    return f;
-  }
-  document.querySelectorAll('[data-official-playlist]').forEach(button=>button.addEventListener('click',()=>{
-    const playlist=button.dataset.officialPlaylist;
-    const title=button.dataset.officialTitle;
-    const f=makeOfficialIframe(playlist,title);if(!f)return;
-    $('anime-featured-player').replaceChildren(f);
-    $('anime-player-title').textContent=title+' | Official full episodes';
-    $('anime-player-source').href='https://www.youtube.com/playlist?list='+encodeURIComponent(playlist);
-    document.querySelectorAll('[data-official-playlist]').forEach(b=>b.classList.toggle('is-playing',b===button));
-  }));
   function setDetailPlayer(a){
-    const player=$('anime-detail-player');player.replaceChildren();
-    const playlist=OFFICIAL_PLAYLISTS.get(titleOf(a).trim().toLowerCase());
-    if(playlist){const f=makeOfficialIframe(playlist,titleOf(a));if(f){player.append(f);return;}}
-    const trailerId=a.trailer?.youtube_id;
-    if(trailerId && /^[a-zA-Z0-9_-]{6,20}$/.test(trailerId)){
-      const p=paragraph('Full episodes are not available to embed here for this title. You can play its official trailer in the panel below or use one of the official watch links.');player.append(p);
-    } else player.append(paragraph('No official full-episode player is available for this title right now. You can still save it and see where it is officially streaming.'));
+    if(window.meropePlayer)window.meropePlayer.open(a);
+    else $('anime-detail-player').replaceChildren(paragraph('Loading the video player...'));
   }
-
 
   document.querySelectorAll('[data-anime-mode]').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.animeMode)));
   document.querySelectorAll('[data-anime-genre]').forEach(b=>b.addEventListener('click',()=>setGenre(b.dataset.animeGenre)));

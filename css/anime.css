@@ -130,3 +130,18 @@
 .anime-inline-player p{margin:0;font-size:.87rem}
 @media(max-width:860px){.anime-player-layout{grid-template-columns:1fr}.anime-playlist-picks{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:560px){.anime-nowwatch{padding:16px}.anime-watch-head{display:block}.anime-official-stamp{display:inline-block;margin-top:15px}.anime-playlist-picks{grid-template-columns:1fr}.anime-player-under{flex-wrap:wrap}}
+
+/* Personal playback library. Video and embeds open inside the existing details panel. */
+.anime-source-controls{display:grid;gap:12px}
+.anime-source-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.anime-source-label{display:grid;gap:5px;font-size:.78rem;color:#add7ef}
+.anime-source-label select,.anime-add-source input,.anime-add-source select{width:100%;padding:10px;border:1px solid #416380;border-radius:9px;color:#e4f6ff;background:#0a1a2b;font:inherit}
+.anime-playback-stage{aspect-ratio:16/9;max-height:550px;min-height:180px;background:#000;border:1px solid #35516d;border-radius:12px;overflow:hidden;display:grid;place-items:center}
+.anime-real-video,.anime-real-frame{height:100%;width:100%;border:0;object-fit:contain;background:#000}
+.anime-play-status{color:#9fbdd0;font-size:.83rem;margin:0}
+.anime-add-source{border:1px solid #35516d;border-radius:12px;background:#0d2133;margin-top:14px;padding:14px}
+.anime-add-source summary{cursor:pointer;color:#a9dcff;font-weight:700}
+.anime-source-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding-top:12px}
+.anime-source-form label{display:grid;gap:5px;color:#bad4e5;font-size:.83rem}.anime-source-form button{justify-self:start}
+.anime-source-message{grid-column:1/-1;color:#d7dfee}
+@media(max-width:660px){.anime-source-row,.anime-source-form{grid-template-columns:repeat(2,minmax(0,1fr))}}

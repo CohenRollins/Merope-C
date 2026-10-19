@@ -13,7 +13,7 @@ cd ~/Merope-C
 python3 admin/house_private.py init
 ```
 
-Choose a **unique private access code with 12 or more characters** and enter it directly into your own terminal. Do not type it into this chat or GitHub. This saves only its salted verification hash, not the original code.
+Choose a **unique private access code with 4 to 6 numeric digits or a stronger code of 12 or more characters** and enter it directly into your own terminal. Do not type it into this chat or GitHub. This saves only its salted verification hash, not the original code.
 
 The command creates this file **on Polaris only**:
 
@@ -87,3 +87,16 @@ Private records live in:
 Back these up securely **outside the public website and Git repo**. Restrict access to your Ubuntu account. Do not publish backups.
 
 For added security, individual resident accounts, per-user audit trails, HTTPS enforcement, and stronger rate limiting should be considered before making the home information widely reachable on the internet.
+
+### Short guest PINs
+
+New setup accepts a 4 to 6 digit PIN. A four-digit PIN is weaker than a full password. Use HTTPS for web access, share it only with trusted guests, and change it if it spreads. Anyone with the code sees private contact details and visitor records. Existing 12+ character access codes remain valid and are not reset by updating. Never commit the PIN or `~/.config/merope-c/house/` to GitHub.
+
+To update an existing 12+ character code to a new 4-6 digit PIN **without losing visitor or photo information**, run:
+
+```bash
+python3 ~/Merope-C/admin/house_private.py set-code
+sudo systemctl restart merope-c-house.service
+```
+
+A 4-digit PIN is a convenience tradeoff and does not offer the strength of an individual user account. Maintain HTTPS, share it only with trusted guests, and rotate it when necessary.

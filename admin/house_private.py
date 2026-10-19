@@ -29,22 +29,36 @@ MAX_PHOTO_BYTES=10*1024*1024
 MAX_REQUEST_BYTES=15*1024*1024
 SESSIONS={}
 ATTEMPTS={}
+GLOBAL_ATTEMPTS=[]
 LISTEN=('127.0.0.1',8767)
 EXPIRES=60*60*2
 DEFAULT={'address':'','contacts':[], 'wifi_name':'','wifi_password':'','apple_maps':'','google_maps':'','notes':''}
+
+def _make_verifier():
+    pw=getpass.getpass('House access PIN (4-6 digits, or stronger code of 12+ characters): ')
+    cf=getpass.getpass('Repeat PIN or code: ')
+    if not ((pw.isdigit() and 4<=len(pw)<=6) or len(pw)>=12) or pw!=cf:
+        raise SystemExit('Use a matching 4-6 digit PIN or a 12+ character code. Nothing changed.')
+    salt=secrets.token_bytes(16)
+    digest=hashlib.pbkdf2_hmac('sha256',pw.encode(),salt,600_000)
+    return {'salt':salt.hex(),'hash':digest.hex()}
+
+def change_code():
+    if not CREDS.exists():raise SystemExit('Initialize the house service first using init.')
+    data=_make_verifier()
+    tmp=BASE/('access-code.'+secrets.token_hex(6)+'.tmp')
+    fd=os.open(tmp,os.O_CREAT|os.O_EXCL|os.O_WRONLY,0o600)
+    with os.fdopen(fd,'w') as f:json.dump(data,f)
+    os.replace(tmp,CREDS)
+    print('Access code changed. Restart merope-c-house.service to end earlier logins.')
 
 def init():
     BASE.mkdir(mode=0o700,parents=True,exist_ok=True)
     os.chmod(BASE,0o700)
     if not CREDS.exists():
-        pw=getpass.getpass('Set private house access code (12+ characters): ')
-        cf=getpass.getpass('Repeat access code: ')
-        if len(pw)<12 or pw!=cf:
-            raise SystemExit('Codes do not match or are too short. Nothing saved.')
-        salt=secrets.token_bytes(16)
-        digest=hashlib.pbkdf2_hmac('sha256',pw.encode(),salt,600_000)
+        data=_make_verifier()
         fd=os.open(CREDS,os.O_CREAT|os.O_EXCL|os.O_WRONLY,0o600)
-        with os.fdopen(fd,'w') as f:json.dump({'salt':salt.hex(),'hash':digest.hex()},f)
+        with os.fdopen(fd,'w') as f:json.dump(data,f)
         print('Access code verifier stored in private config. The code itself was not saved.')
     else:print('Access code already set; not changing it.')
     if not DETAILS.exists():
@@ -181,14 +195,16 @@ class Server(BaseHTTPRequestHandler):
         try:
             if path=='/house-api/login':
                 client=self.headers.get('X-Real-IP',self.client_address[0])
-                recent=[t for t in ATTEMPTS.get(client,[]) if t>time.time()-900]
+                recent=[t for t in ATTEMPTS.get(client,[]) if t>time.time()-1800]
                 ATTEMPTS[client]=recent
-                if len(recent)>=6:return self.respond(429,{'error':'Too many attempts. Try again later.'})
+                global GLOBAL_ATTEMPTS
+                GLOBAL_ATTEMPTS=[t for t in GLOBAL_ATTEMPTS if t>time.time()-1800]
+                if len(recent)>=4 or len(GLOBAL_ATTEMPTS)>=16:return self.respond(429,{'error':'Too many attempts. Try again in 30 minutes.'})
                 pw=str(self.content().get('code',''))[:2048]
                 cred=json.loads(CREDS.read_text())
                 digest=hashlib.pbkdf2_hmac('sha256',pw.encode(),bytes.fromhex(cred['salt']),600_000)
                 if not hmac.compare_digest(digest,bytes.fromhex(cred['hash'])):
-                    recent.append(time.time());time.sleep(.5)
+                    recent.append(time.time());GLOBAL_ATTEMPTS.append(time.time());time.sleep(.5)
                     return self.respond(401,{'error':'That code did not work.'})
                 ATTEMPTS.pop(client,None)
                 sid=secrets.token_hex(32);csrf=secrets.token_hex(32)
@@ -259,9 +275,10 @@ class Server(BaseHTTPRequestHandler):
         except (FileNotFoundError,OSError):return self.respond(503,{'error':'The resident service needs initial setup.'})
 
 if __name__=='__main__':
-    if len(sys.argv)!=2 or sys.argv[1] not in ('init','run'):
-        raise SystemExit('Usage: python3 admin/house_private.py init|run')
+    if len(sys.argv)!=2 or sys.argv[1] not in ('init','run','set-code'):
+        raise SystemExit('Usage: python3 admin/house_private.py init|run|set-code')
     if sys.argv[1]=='init':init()
+    elif sys.argv[1]=='set-code':change_code()
     else:
         if not CREDS.exists() or not DETAILS.exists() or not DB.exists():raise SystemExit('First run: python3 admin/house_private.py init')
         init_photos()

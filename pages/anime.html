@@ -11,7 +11,7 @@
 <link href="../css/anime.css" rel="stylesheet"/>
 <script defer="" src="../js/main.js"></script>
 <script defer="" src="../js/anime.js"></script>
-</head>
+<script defer="" src="https://cdn.jsdelivr.net/npm/hls.js@1.5.20/dist/hls.min.js"></script><script defer="" src="../js/anime-player.js"></script></head>
 <body>
 <a class="anime-skip" href="#anime-main">Skip to anime library</a>
 <header class="topbar">
@@ -27,13 +27,8 @@
 <div aria-hidden="true" class="anime-intro-mark"><span>星</span><span>✧</span></div>
 </div>
 <section aria-labelledby="anime-nowwatch-heading" class="anime-nowwatch" id="anime-watch-on-site">
-<div class="anime-watch-head"><div><div class="eyebrow">Play right here</div><h2 id="anime-nowwatch-heading">Full episodes from official channels</h2><p>These are official YouTube playlists from TMS Entertainment. You can watch the episodes in the player below without leaving Merope-C. Availability depends on the publisher and your region.</p></div><span class="anime-official-stamp">OFFICIAL UPLOADS</span></div>
-<div class="anime-player-layout"><div class="anime-player-shell"><div class="anime-player-container" id="anime-featured-player"><div class="anime-player-cover"><span>▶</span><strong>Choose a show to start watching.</strong></div></div><div class="anime-player-under"><strong id="anime-player-title">Your next episode starts here</strong><a href="https://tmsanime.com/anime-on-tms-official-channel" id="anime-player-source" rel="noopener noreferrer" target="_blank">Official source ↗</a></div></div><div class="anime-playlist-picks">
-<button class="anime-show-pick" data-official-playlist="PLj2Ugc-vxcWGDWFMIlD5i-gz3u2s4tMa-" data-official-title="God Mars" type="button"><span>01</span><span><strong>God Mars</strong><small>Full episodes, English subtitles</small></span><span>▶</span></button>
-<button class="anime-show-pick" data-official-playlist="PLj2Ugc-vxcWHnPJDXLZMmBqVm37XnI06x" data-official-title="We Rent Tsukumogami" type="button"><span>02</span><span><strong>We Rent Tsukumogami</strong><small>Full episodes, English subtitles</small></span><span>▶</span></button>
-<button class="anime-show-pick" data-official-playlist="PLj2Ugc-vxcWG_zTnv_Bzlo_T9tG2xDmzD" data-official-title="The Gutsy Frog" type="button"><span>03</span><span><strong>The Gutsy Frog</strong><small>Full episodes, English subtitles</small></span><span>▶</span></button>
-</div></div>
-<p class="smallprint">Only shows provided for playback by their rights holders will play here. Some titles in the main catalog have trailers or external official services instead of free full episodes.</p>
+<div class="anime-watch-head"><div><div class="eyebrow">Your watch space</div><h2 id="anime-nowwatch-heading">Watch full episodes here.</h2><p>Choose a title below and open its player. Add a video or embed link you have permission to use, or serve your own episodes from Polaris. The player keeps your episode and playback preferences.</p></div><span class="anime-official-stamp">VIDEO LIBRARY</span></div>
+<div class="anime-player-layout anime-library-setup"><div class="anime-player-shell"><div class="anime-player-container" id="anime-featured-player"><div class="anime-player-cover"><span>▶</span><strong>Select a title in the catalog to watch it on Merope-C.</strong></div></div><div class="anime-player-under"><strong id="anime-player-title">Merope-C Video Player</strong><a href="#anime-library-title" id="anime-player-source">Browse titles ↓</a></div></div><div class="anime-playlist-picks"><h3>Your own sources</h3><p>Supports MP4, WebM, HLS playlists, and websites that permit embedding. Choose a title, then add a source for its season and episode. You can also publish approved links in <code>data/anime-sources.json</code>.</p><p class="smallprint">A catalog entry does not automatically include the video. The source has to be available, and some third-party players block embedding.</p><a class="button alt" href="#anime-library-title">Browse anime ↓</a></div></div>
 </section><section aria-labelledby="anime-library-title" class="anime-library">
 <div class="anime-library-head">
 <div>
@@ -76,7 +71,7 @@
 </section>
 <aside class="anime-disclaimer">
 <div aria-hidden="true">✧</div>
-<p><strong>Watch right here when a publisher provides an embeddable player.</strong> The player above uses official full-episode playlists. The rest of the catalog uses Jikan for discovery, and full-episode availability depends on the rights holder. Your saved list and watch progress stay in this browser.</p>
+<p>The catalog is for discovering anime. Full-episode playback uses links or files you configure. Video availability depends on the source and its permissions. Your saved list and viewing progress stay in this browser.</p>
 </aside>
 </main>
 <dialog aria-labelledby="anime-detail-title" class="anime-dialog" id="anime-dialog">
@@ -92,20 +87,20 @@
 <p class="anime-detail-synopsis" id="anime-detail-synopsis"></p>
 <div class="anime-detail-actions">
 <button class="button" id="anime-detail-save" type="button">＋ Save to my list</button>
-<button class="button alt" hidden="" id="anime-detail-trailer" type="button">▶ Watch official trailer</button>
+<button class="button alt" hidden="" id="anime-detail-trailer" type="button">▶ Watch trailer</button>
 <a class="button alt" href="https://myanimelist.net/" id="anime-detail-mal" rel="noopener noreferrer" target="_blank">MyAnimeList ↗</a>
 </div>
 </div>
 </div>
-<section aria-labelledby="anime-inplayer-title" class="anime-detail-section anime-inplayer"><h3 id="anime-inplayer-title">Watch on Merope-C</h3><div class="anime-inline-player" id="anime-detail-player"><p>Checking for an officially available player...</p></div></section><div class="anime-trailer-area" hidden="" id="anime-trailer-area"></div>
+<section aria-labelledby="anime-inplayer-title" class="anime-detail-section anime-inplayer"><h3 id="anime-inplayer-title">Watch on Merope-C</h3><div class="anime-inline-player" id="anime-detail-player"><p>Loading your playback sources...</p></div><p class="smallprint">You can add a playable link for your own browser below, or configure a shared library on Polaris. Playback stays on this page.</p></section><div class="anime-trailer-area" hidden="" id="anime-trailer-area"></div>
 <section aria-labelledby="anime-streaming-title" class="anime-detail-section">
-<h3 id="anime-streaming-title">Where to watch</h3>
-<p class="smallprint">Official provider links may depend on your region or subscription. Search links don't guarantee availability.</p>
+<h3 id="anime-streaming-title">Other viewing options</h3>
+<p class="smallprint">Availability and supported players depend on the service you choose.</p>
 <div class="anime-streaming-links" id="anime-detail-streaming"><span class="anime-detail-muted">Checking available services…</span></div>
 </section>
 <section aria-labelledby="anime-episodes-title" class="anime-detail-section" id="anime-episodes-section">
 <div class="anime-episodes-header"><h3 id="anime-episodes-title">Episodes</h3><span class="anime-detail-muted" id="anime-episodes-progress"></span></div>
-<p class="smallprint">Use this checklist to mark what you have watched. The player above has officially available full episodes.</p>
+<p class="smallprint">Tick watched episodes here, or play an episode from the configured video sources above.</p>
 <div class="anime-episode-list" id="anime-detail-episodes"></div>
 <button class="button alt anime-more-episodes" hidden="" id="anime-more-episodes" type="button">More episodes ↓</button>
 </section>
