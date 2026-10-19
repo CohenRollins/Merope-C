@@ -299,3 +299,23 @@ body>main,body>footer{z-index:1;position:relative}
 .personal-concept .personal-concept-hero .personal-hero-copy .actions{position:relative;z-index:6}
 }
 @media(max-width:900px){.personal-concept-stage .personal-concept-clouds{width:min(120%,650px);max-height:none;bottom:-18px}}
+
+/* Personal hero v6: Clouds seated in the scene, not overlaid on a framed card. */
+.personal-concept .personal-concept-hero{overflow:visible;isolation:isolate}
+.personal-concept .personal-concept-hero .personal-hero-copy{position:relative;z-index:5}
+.personal-concept .personal-concept-stage{background:transparent!important;overflow:visible!important}
+.personal-concept .personal-concept-orbit{background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important;opacity:1!important;overflow:visible!important;pointer-events:none}
+.personal-concept .personal-concept-orbit::before,.personal-concept .personal-concept-orbit::after{display:none!important}
+.personal-concept .personal-concept-center,.personal-concept .personal-concept-label{display:none!important}
+.personal-concept .personal-concept-stage::before{content:"";position:absolute;inset:12% -24% -2% -37%;z-index:0;border-radius:50%;background:radial-gradient(ellipse at 53% 72%,#115f963b 0%,#1b4e8940 30%,#07254216 55%,transparent 75%);filter:blur(22px);pointer-events:none}
+.personal-concept .personal-concept-stage::after{content:"";position:absolute;z-index:1;left:-55%;right:-33%;bottom:3%;height:130px;border-top:2px solid #6bbcff99;border-radius:50% 50% 0 0;transform:rotate(-8deg);background:linear-gradient(#2f81c82c,transparent 75%);filter:drop-shadow(0 0 15px #53a8edaa);pointer-events:none}
+.personal-concept .personal-concept-stage .personal-concept-clouds{z-index:3;right:-22%;bottom:-30px;width:clamp(730px,69vw,1080px);max-height:none;filter:drop-shadow(0 9px 13px #0005)}
+@media(max-width:900px){
+.personal-concept .personal-concept-stage .personal-concept-clouds{right:-4%;bottom:-8px;width:min(125%,690px)}
+.personal-concept .personal-concept-stage::after{left:-25%;right:-12%;bottom:4%}
+}
+@media(max-width:570px){
+.personal-concept .personal-concept-stage{height:330px}
+.personal-concept .personal-concept-stage .personal-concept-clouds{width:112%;right:-8%;bottom:3px}
+.personal-concept .personal-concept-stage::after{height:70px;left:-15%;right:-12%}
+}
