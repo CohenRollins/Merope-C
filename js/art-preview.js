@@ -37,8 +37,8 @@
  }
  function play(){
    clearInterval(ticker);
-   if(items.length>1&&!reduced)ticker=setInterval(()=>{
-     if(!document.hidden && !area.matches(':hover') && !area.matches(':focus-within'))navigate(1);
+   if(items.length>1)ticker=setInterval(()=>{
+     if(!document.hidden)navigate(1);
    },12000);
  }
  async function load(){
