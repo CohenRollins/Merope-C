@@ -57,13 +57,13 @@
     ratio=Math.min(window.devicePixelRatio||1,2);
     canvas.width=Math.round(width*ratio);canvas.height=Math.round(height*ratio);
     ctx.setTransform(ratio,0,0,ratio,0,0);
-    const count=Math.min(155,Math.max(75,Math.round(width*height/10500)));
+    const count=Math.min(115,Math.max(65,Math.round(width*height/16000)));
     stars=Array.from({length:count},(_,i)=>({
       x:Math.random()*width,y:Math.random()*height,
-      r:1.5+Math.random()*1.65,
+      r:2.3+Math.random()*2.3,
       phase:Math.random()*Math.PI*2,
-      period:2700+Math.random()*2800,
-      bright:Math.random()>.58
+      period:1700+Math.random()*1600,
+      bright:Math.random()>.42
     }));
   }
   function diamond(x,y,size,color){
@@ -78,8 +78,8 @@
   function draw(t){
     ctx.clearRect(0,0,width,height);
     for(const s of stars){
-      const progress=reduced.matches?.3:(.5+.5*Math.sin(t*Math.PI*2/s.period+s.phase));
-      const glow=progress*progress;
+      const progress=reduced.matches?.45:(.5+.5*Math.sin(t*Math.PI*2/s.period+s.phase));
+      const glow=Math.pow(progress,3);
       const x=s.x;
       const y=((s.y-scroll*.05+height)%height);
       const size=s.r*(.9+glow*.35);
@@ -87,19 +87,19 @@
       const red=Math.round(87+(255-87)*progress);
       const green=Math.round(159+(255-159)*progress);
       const blue=255;
-      const alpha=.33+glow*.67;
+      const alpha=.36+glow*.64;
       if(progress>.62){
         ctx.save();
         ctx.shadowColor='rgba(245,251,255,'+(.30+glow*.65)+')';
-        ctx.shadowBlur=(s.bright?17:10)*glow;
+        ctx.shadowBlur=(s.bright?35:21)*glow;
         diamond(x,y,size*(1+glow*.18),'rgba('+red+','+green+','+blue+','+alpha+')');
         ctx.restore();
       }else{
         diamond(x,y,size,'rgba('+red+','+green+','+blue+','+alpha+')');
       }
-      if(s.bright && progress>.80){
-        ctx.save();ctx.strokeStyle='rgba(250,253,255,'+((progress-.80)*3.2)+')';
-        ctx.lineWidth=.7;const span=5+progress*7;
+      if(s.bright && progress>.72){
+        ctx.save();ctx.strokeStyle='rgba(250,253,255,'+((progress-.72)*3.5)+')';
+        ctx.lineWidth=.7;const span=7+progress*10;
         ctx.beginPath();ctx.moveTo(x-span,y);ctx.lineTo(x+span,y);ctx.moveTo(x,y-span);ctx.lineTo(x,y+span);
         ctx.stroke();ctx.restore();
       }
