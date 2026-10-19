@@ -22,6 +22,7 @@
    }catch{root.replaceChildren(element('p','Public photos are temporarily unavailable.','smallprint'));}
  }
  refreshPublicPhotos();
+ setInterval(refreshPublicPhotos, 30000);
  function say(msg){notice.textContent=msg;}
  function element(tag,text,cls){const n=document.createElement(tag);if(text!=null)n.textContent=String(text);if(cls)n.className=cls;return n;}
  async function request(path,data,method='GET'){
