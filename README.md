@@ -1,3 +1,23 @@
+# Merope-C website (v0.8)
+
+The latest update is documented in **UPDATE-v0.8.md**. Resident access has its own **HOUSE-PRIVATE-SETUP.md**. The current site still deploys to Polaris as static HTML/CSS/JS with Nginx, while the art admin and resident service run privately as separate Python processes. Never publish private house details in GitHub.
+
+## Quick static site deployment
+
+Extract the ZIP into your existing local Merope-C Git repository without replacing its `.git` folder. Commit and push. Then on Polaris:
+
+```bash
+cd ~/Merope-C
+git pull --ff-only
+sudo cp -a index.html pages css js assets data portfolio /var/www/merope-c/
+```
+
+Anime covers: see `UPDATE-v0.8.md`. Resident information: see `HOUSE-PRIVATE-SETUP.md`. Existing gallery editor instructions: see `ART-ADMIN-START-HERE.md`.
+
+---
+
+## Older setup notes (historical v0.3)
+
 # Merope-C — personal hub (v0.3 candidate)
 
 This is a working update for **Merope-C**, hosted by **Polaris** (Dell PowerEdge R640 / Ubuntu / Nginx). It extends the earlier website instead of replacing its existing sections with a new framework.

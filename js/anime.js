@@ -17,6 +17,7 @@
 
   // Starter picks are packaged with the site so the hub isn't empty offline.
   // These are personal recommendations, not live rankings or current airing information.
+  const COVERS = {5114: "https://cdn.myanimelist.net/images/anime/1208/94745.jpg", 9253: "https://cdn.myanimelist.net/images/anime/5/73199.jpg", 11061: "https://cdn.myanimelist.net/images/anime/11/33657.jpg", 1535: "https://cdn.myanimelist.net/images/anime/9/9453.jpg", 1: "https://cdn.myanimelist.net/images/anime/4/19644.jpg", 31240: "https://cdn.myanimelist.net/images/anime/11/79410.jpg", 52991: "https://cdn.myanimelist.net/images/anime/1015/138006.jpg", 40748: "https://cdn.myanimelist.net/images/anime/1171/109222.jpg", 38000: "https://cdn.myanimelist.net/images/anime/1286/99889.jpg", 32182: "https://cdn.myanimelist.net/images/anime/8/80356.jpg", 50265: "https://cdn.myanimelist.net/images/anime/1441/122795.jpg", 21: "https://cdn.myanimelist.net/images/anime/6/73245.jpg", 20583: "https://cdn.myanimelist.net/images/anime/7/76014.jpg", 37521: "https://cdn.myanimelist.net/images/anime/1500/103005.jpg", 47917: "https://cdn.myanimelist.net/images/anime/1448/127956.jpg", 199: "https://cdn.myanimelist.net/images/anime/6/79597.jpg", 32281: "https://cdn.myanimelist.net/images/anime/5/87048.jpg", 28851: "https://cdn.myanimelist.net/images/anime/1122/96435.jpg"};
   const STARTER_ANIME = [
     [5114,'Fullmetal Alchemist: Brotherhood',2009,'TV',64,['1','2','10'],'Two brothers search for a way to undo the consequences of a failed alchemy experiment.'],
     [9253,'Steins;Gate',2011,'TV',24,['24','8'],'A group of friends stumble into time travel and have to deal with what it changes.'],
@@ -38,7 +39,7 @@
     [28851,'A Silent Voice',2016,'Movie',null,['8'],'A former bully tries to make amends as he grows older.']
   ].map(([mal_id,title,year,type,episodes,genres,synopsis],i)=>({mal_id,title,year,type,episodes,
     genres:genres.map(mal_id=>({mal_id:Number(mal_id),name:GENRE_MAP.get(mal_id)||'Other'})),synopsis,
-    images:{},image:'',score:null,popularity:i+1,status:'Featured pick',trailer:null,url:`https://myanimelist.net/anime/${mal_id}`,rating:'',title_japanese:'',aired:null}));
+    images:{},image:COVERS[mal_id]||'',score:null,popularity:i+1,status:'Featured pick',trailer:null,url:`https://myanimelist.net/anime/${mal_id}`,rating:'',title_japanese:'',aired:null}));
   const BACKUP_KEY = 'merope_anime_catalog_backup_v1';
   function offlineTitles(){
     const q=state.query.trim().toLocaleLowerCase();
@@ -77,7 +78,14 @@
     try { const u = new URL(value); return ['https:', 'http:'].includes(u.protocol) ? u.href : ''; }
     catch { return ''; }
   };
-  const poster = a => safeUrl(a?.images?.webp?.large_image_url || a?.images?.webp?.image_url || a?.images?.jpg?.large_image_url || a?.images?.jpg?.image_url || a?.image || '');
+  const poster = a => {
+    const src=a?.images?.webp?.large_image_url || a?.images?.webp?.image_url || a?.images?.jpg?.large_image_url || a?.images?.jpg?.image_url;
+    if(src)return safeUrl(src);
+    const id=Number(a?.mal_id);
+    if(COVERS[id])return '../assets/anime/posters/mal-'+id+'.jpg';
+    return safeUrl(a?.image||'');
+  };
+  const fallbackPoster = a => '../assets/anime/covers/mal-'+Number(a?.mal_id)+'.svg';
   const titleOf = a => a?.title_english || a?.title || 'Untitled anime';
   const typeOf = a => a?.type || 'Anime';
   function normalize(a) {
@@ -208,7 +216,7 @@
       const card=document.createElement('article');card.className='anime-tile';
       const posterBtn=document.createElement('button');posterBtn.className='anime-poster';posterBtn.type='button';posterBtn.setAttribute('aria-label',`Details for ${titleOf(anime)}`);
       const imgSrc=poster(anime);
-      if(imgSrc){const img=document.createElement('img');img.src=imgSrc;img.alt=`${titleOf(anime)} poster`;img.loading='lazy';img.decoding='async';img.referrerPolicy='no-referrer';img.addEventListener('error',()=>{img.remove();posterBtn.prepend(text('span',titleOf(anime),'anime-poster-letter'));},{once:true});posterBtn.append(img);}
+      if(imgSrc){const img=document.createElement('img');img.src=imgSrc;img.alt=`${titleOf(anime)} poster`;img.loading='lazy';img.decoding='async';img.referrerPolicy='no-referrer';img.addEventListener('error',()=>{const level=Number(img.dataset.fallback||0);if(level===0 && COVERS[id]){img.dataset.fallback='1';img.src=COVERS[id];}else if(level<=1){img.dataset.fallback='2';img.src=fallbackPoster(anime);}else{img.remove();posterBtn.prepend(text('span',titleOf(anime),'anime-poster-letter'));}});posterBtn.append(img);}
       else {const wrap=text('span',titleOf(anime),'anime-poster-letter');posterBtn.append(wrap);}
       if(Number(anime.score)>0)posterBtn.append(text('span',`★ ${Number(anime.score).toFixed(1)}`,'anime-score'));
       posterBtn.addEventListener('click',()=>openDetail(anime,posterBtn));
@@ -227,7 +235,8 @@
   function setMode(mode){
     if(!['top','airing','movie','saved'].includes(mode))return;
     state.mode=mode;
-    document.querySelectorAll('[data-anime-mode]').forEach(b=>{const active=b.dataset.animeMode===mode;b.classList.toggle('is-active',active);b.setAttribute('aria-pressed',String(active));});
+  
+  document.querySelectorAll('[data-anime-mode]').forEach(b=>{const active=b.dataset.animeMode===mode;b.classList.toggle('is-active',active);b.setAttribute('aria-pressed',String(active));});
     refresh();
   }
   function setGenre(genre){
@@ -304,7 +313,8 @@
     state.selected=a;state.trigger=trigger;
     const token=++state.modalRun;
     state.episodeMore=false;state.episodePage=1;state.epLoading=false;
-    $('anime-detail-image').src=poster(a);
+    $('anime-detail-image').onerror=()=>{const img=$('anime-detail-image');const level=Number(img.dataset.fallback||0);if(level===0 && COVERS[idOf(a)]){img.dataset.fallback='1';img.src=COVERS[idOf(a)];}else if(level<=1){img.dataset.fallback='2';img.src=fallbackPoster(a);}else img.style.visibility='hidden';};
+    $('anime-detail-image').dataset.fallback='';$('anime-detail-image').style.visibility='visible';$('anime-detail-image').src=poster(a)||fallbackPoster(a);
     $('anime-detail-image').alt=`${titleOf(a)} poster`;
     $('anime-detail-title').textContent=titleOf(a);
     $('anime-detail-alt').textContent=a.title_japanese&&a.title_japanese!==a.title?a.title_japanese:'';
@@ -319,6 +329,7 @@
     $('anime-detail-episodes').replaceChildren();
     $('anime-episodes-progress').textContent='';
     providerLinks(a);
+    setDetailPlayer(a);
     if(!dialog.open)dialog.showModal();
     void updateOfficialLinks(a,token);
     if(a.type!=='Movie')void loadEpisodes(1,token);
@@ -328,6 +339,7 @@
       if(token!==state.modalRun||!details.data)return;
       state.selected=normalize({...a,...details.data});
       const updated=state.selected;
+      setDetailPlayer(updated);
       $('anime-detail-synopsis').textContent=updated.synopsis||'Synopsis not available.';
       setFacts(updated);updateSaveButton();
       const detailTrailer=updated.trailer?.youtube_id;
@@ -338,10 +350,47 @@
     state.modalRun++;
     $('anime-trailer-area').replaceChildren();
     $('anime-trailer-area').hidden=true;
+    $('anime-detail-player').replaceChildren();
     if(dialog.open)dialog.close();
     state.trigger?.focus({preventScroll:true});
     state.selected=null;
   }
+
+  const OFFICIAL_PLAYLISTS = new Map([
+    ['god mars','PLj2Ugc-vxcWGDWFMIlD5i-gz3u2s4tMa-'],
+    ['we rent tsukumogami','PLj2Ugc-vxcWHnPJDXLZMmBqVm37XnI06x'],
+    ['the gutsy frog','PLj2Ugc-vxcWG_zTnv_Bzlo_T9tG2xDmzD']
+  ]);
+  function makeOfficialIframe(playlist,title){
+    if(!/^[a-zA-Z0-9_-]{12,64}$/.test(playlist))return null;
+    const f=document.createElement('iframe');
+    f.title=title+' | Official full episodes on YouTube';
+    f.src='https://www.youtube-nocookie.com/embed/videoseries?list='+encodeURIComponent(playlist)+'&rel=0';
+    f.allow='autoplay; encrypted-media; picture-in-picture; fullscreen';
+    f.allowFullscreen=true;
+    f.referrerPolicy='strict-origin-when-cross-origin';
+    f.loading='lazy';
+    return f;
+  }
+  document.querySelectorAll('[data-official-playlist]').forEach(button=>button.addEventListener('click',()=>{
+    const playlist=button.dataset.officialPlaylist;
+    const title=button.dataset.officialTitle;
+    const f=makeOfficialIframe(playlist,title);if(!f)return;
+    $('anime-featured-player').replaceChildren(f);
+    $('anime-player-title').textContent=title+' | Official full episodes';
+    $('anime-player-source').href='https://www.youtube.com/playlist?list='+encodeURIComponent(playlist);
+    document.querySelectorAll('[data-official-playlist]').forEach(b=>b.classList.toggle('is-playing',b===button));
+  }));
+  function setDetailPlayer(a){
+    const player=$('anime-detail-player');player.replaceChildren();
+    const playlist=OFFICIAL_PLAYLISTS.get(titleOf(a).trim().toLowerCase());
+    if(playlist){const f=makeOfficialIframe(playlist,titleOf(a));if(f){player.append(f);return;}}
+    const trailerId=a.trailer?.youtube_id;
+    if(trailerId && /^[a-zA-Z0-9_-]{6,20}$/.test(trailerId)){
+      const p=paragraph('Full episodes are not available to embed here for this title. You can play its official trailer in the panel below or use one of the official watch links.');player.append(p);
+    } else player.append(paragraph('No official full-episode player is available for this title right now. You can still save it and see where it is officially streaming.'));
+  }
+
 
   document.querySelectorAll('[data-anime-mode]').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.animeMode)));
   document.querySelectorAll('[data-anime-genre]').forEach(b=>b.addEventListener('click',()=>setGenre(b.dataset.animeGenre)));

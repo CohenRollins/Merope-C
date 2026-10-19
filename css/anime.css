@@ -104,3 +104,29 @@
 .anime-tile:nth-child(4n+2) .anime-poster-letter{background:linear-gradient(135deg,#234969,#19243b,#305d72)}
 .anime-tile:nth-child(4n+3) .anime-poster-letter{background:linear-gradient(135deg,#1d3c60,#1b2838,#31566e)}
 .anime-tile:nth-child(4n+4) .anime-poster-letter{background:linear-gradient(135deg,#2c4765,#0d2436,#235a75)}
+
+/* v0.8 embedded authorized full-episode player */
+.anime-nowwatch{margin:8px 0 35px;padding:28px;background:linear-gradient(140deg,#0d1c2b,#071019);border:1px solid #31516a;border-radius:23px}
+.anime-watch-head{display:flex;align-items:start;gap:20px;justify-content:space-between;margin-bottom:24px}
+.anime-watch-head h2{margin:7px 0 10px;font-size:clamp(1.75rem,3.5vw,2.45rem)}
+.anime-watch-head p{max-width:740px;color:#a7bfd2;margin:0}
+.anime-official-stamp{color:#9dd4f8;border:1px solid #375a77;background:#102a3c;border-radius:30px;padding:8px 12px;white-space:nowrap;font-size:.72rem;letter-spacing:.05em}
+.anime-player-layout{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:22px}
+.anime-player-shell{min-width:0;background:#02080e;border:1px solid #355372;border-radius:16px;overflow:hidden}
+.anime-player-container{aspect-ratio:16/9;position:relative;background:radial-gradient(ellipse at center,#14304d,#030910 72%)}
+.anime-player-container iframe,.anime-inline-player iframe{position:absolute;inset:0;height:100%;width:100%;border:0}
+.anime-player-cover{height:100%;display:grid;place-content:center;gap:15px;text-align:center;color:#d7ecff;padding:15px}
+.anime-player-cover span{font-size:2.5rem;color:#91d6ff}.anime-player-cover strong{font-size:1.2rem}
+.anime-player-under{display:flex;gap:12px;justify-content:space-between;align-items:center;padding:12px 15px;font-size:.82rem}
+.anime-player-under a{color:#99d4ff;white-space:nowrap}
+.anime-playlist-picks{display:grid;gap:10px;align-content:start}
+.anime-show-pick{display:flex;text-align:left;gap:13px;align-items:center;border-radius:12px;background:#132637;border:1px solid #2b4b63;color:#e1f4ff;padding:16px 12px;cursor:pointer;font:inherit;transition:background .2s,border-color .2s}
+.anime-show-pick:hover,.anime-show-pick.is-playing{border-color:#76c8fb;background:#224762}
+.anime-show-pick>span:first-child{font-size:.75rem;color:#8ac4eb;font-weight:bold}
+.anime-show-pick>span:nth-child(2){flex:1;display:grid;gap:3px}
+.anime-show-pick strong{font-size:.9rem}.anime-show-pick small{color:#a5bdce;font-size:.71rem}
+.anime-inline-player{min-height:90px;position:relative;border:1px solid #2c465e;border-radius:11px;background:#08121d;overflow:hidden;padding:18px;color:#aac6da}
+.anime-inline-player:has(iframe){aspect-ratio:16/9;padding:0;min-height:0}
+.anime-inline-player p{margin:0;font-size:.87rem}
+@media(max-width:860px){.anime-player-layout{grid-template-columns:1fr}.anime-playlist-picks{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:560px){.anime-nowwatch{padding:16px}.anime-watch-head{display:block}.anime-official-stamp{display:inline-block;margin-top:15px}.anime-playlist-picks{grid-template-columns:1fr}.anime-player-under{flex-wrap:wrap}}

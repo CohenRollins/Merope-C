@@ -1,0 +1,20 @@
+[Unit]
+Description=Merope-C private house information and visitor list
+After=network.target
+
+[Service]
+Type=simple
+User=cococr
+Group=cococr
+ExecStart=/usr/bin/python3 /home/cococr/Merope-C/admin/house_private.py run
+WorkingDirectory=/home/cococr/Merope-C
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/home/cococr/.config/merope-c/house
+
+[Install]
+WantedBy=multi-user.target
