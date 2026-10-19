@@ -32,7 +32,7 @@ ATTEMPTS={}
 GLOBAL_ATTEMPTS=[]
 LISTEN=('127.0.0.1',8767)
 EXPIRES=60*60*2
-DEFAULT={'address':'','contacts':[], 'wifi_name':'','wifi_password':'','apple_maps':'','google_maps':'','notes':''}
+DEFAULT={'address':'','contacts':[], 'wifi_name':'','wifi_password':'','apple_maps':'','google_maps':'','notes':'','rules':[]}
 
 def _make_verifier():
     pw=getpass.getpass('House access PIN (4-6 digits, or stronger code of 12+ characters): ')
