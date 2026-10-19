@@ -184,7 +184,7 @@ class Server(BaseHTTPRequestHandler):
             return self.respond(200,allowed)
         if path=='/house-api/public-photos':
             with connect() as c:
-                rows=c.execute('SELECT id,date,caption FROM photos WHERE public=1 ORDER BY date DESC,created DESC LIMIT 100').fetchall()
+                rows=c.execute('SELECT id,date,caption FROM photos WHERE public=1 ORDER BY created DESC, id DESC LIMIT 3').fetchall()
             return self.respond(200,[{'id':r['id'],'date':r['date'],'caption':r['caption'],'url':'/house-api/public-photos/media/'+r['id']} for r in rows])
         if path.startswith('/house-api/public-photos/media/'):
             ident=path.rsplit('/',1)[-1]
