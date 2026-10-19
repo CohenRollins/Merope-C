@@ -63,7 +63,7 @@
       x:Math.random()*width,y:Math.random()*height,
       r:mobile.matches?1.25+Math.random()*1.25:2.4+Math.random()*2.4,
       phase:Math.random()*Math.PI*2,
-      period:mobile.matches?5500+Math.random()*3000:3800+Math.random()*2400,
+      period:mobile.matches?7500+Math.random()*3000:6200+Math.random()*3000,
       bright:Math.random()>.42
     }));
   }
@@ -98,12 +98,7 @@
       }else{
         diamond(x,y,size,'rgba('+red+','+green+','+blue+','+alpha+')');
       }
-      if(s.bright && progress>(mobile.matches?.94:.78)){
-        ctx.save();ctx.strokeStyle='rgba(250,253,255,'+((progress-.72)*3.5)+')';
-        ctx.lineWidth=.7;const span=(mobile.matches?3:7)+progress*(mobile.matches?4:10);
-        ctx.beginPath();ctx.moveTo(x-span,y);ctx.lineTo(x+span,y);ctx.moveTo(x,y-span);ctx.lineTo(x,y+span);
-        ctx.stroke();ctx.restore();
-      }
+
     }
   }
   function tick(t){draw(t);frame=requestAnimationFrame(tick);}
