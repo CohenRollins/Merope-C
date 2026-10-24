@@ -1,4 +1,4 @@
-/* Merope-C Anime Hub v0.14.
+/* Merope-C Anime Hub v0.15.
  * Provider-operated iframe playback and direct user-configured MP4/WebM/HLS.
  * No scraping, stream extraction, access-control bypass, or open media proxy.
  * External players load only after a user explicitly selects Play.
@@ -33,10 +33,16 @@
   let teardownActive=null, refreshSourceList=null;
   const backend={}, status={}, identities={};
   const AUDIO=[['sub','Sub'],['dub','Dub'],['original','Original']];
+  // Confirmed media-identity fallback when the mapping API has no TV match.
+  // MAL 31240 is Re:Zero (2016); TMDB TV 65942 is the same series.
+  const KNOWN_TMDB_TV={'31240':'65942'};
+  const OFFICIAL_WATCH={'31240':{name:'Watch Re:Zero on Crunchyroll',url:'https://www.crunchyroll.com/series/GRGG9798R/'}};
 
   const PROVIDERS = [
     // Provider-documented anime embed; this is an iframe, not a hosted or verified stream.
-    {id:'vidlink',label:'VidLink Anime (embed)',build:m=>`https://vidlink.pro/anime/${m.mal}/${m.episode}/${m.audio==='dub'?'dub':'sub'}?primaryColor=5CA6E8&secondaryColor=172D45&autoplay=true&fallback=true`},
+    {id:'vidlink',label:'VidLink Anime (MAL)',build:m=>`https://vidlink.pro/anime/${m.mal}/${m.episode}/${m.audio==='dub'?'dub':'sub'}?primaryColor=5CA6E8&secondaryColor=172D45&autoplay=true&fallback=true`},
+    // Separate documented TV route: not guaranteed to have the same catalog.
+    {id:'vidlinktv',label:'VidLink TV (TMDB alternative)',build:m=>!m.movie&&m.tmdb&&`https://vidlink.pro/tv/${m.tmdb}/${m.season}/${m.episode}?primaryColor=5CA6E8&secondaryColor=172D45&autoplay=true`},
     {id:'vidsrc',label:'VidSrc',build:m=>m.id && `https://vidsrc.sh/embed/${m.movie?'movie':'tv'}/${m.id}${m.movie?'':`/${m.season}/${m.episode}`}`},
     {id:'cinesrc',label:'CineSrc',build:m=>m.tmdb && `https://cinesrc.st/embed/${m.movie?'movie':'tv'}/${m.tmdb}${m.movie?'':`?s=${m.season}&e=${m.episode}`}`},
     {id:'screenscape',label:'ScreenScape',build:m=>m.id && `https://nxsha.screenscape.me/embed?${validImdb(m.id)?'imdb':'tmdb'}=${m.id}&type=${m.movie?'movie':'tv'}${m.movie?'':`&s=${m.season}&e=${m.episode}`}`},
@@ -69,7 +75,7 @@
   function idMapping(mal, movie) {
     const raw=identities[mal]||{}, manual=overrides[mal]||{};
     const type=movie?'movie':'tv';
-    const picked=manual[type]||raw.tmdb?.[type];
+    const picked=manual[type]||raw.tmdb?.[type]||(!movie&&KNOWN_TMDB_TV[mal]);
     const tmdb=validId(picked)?String(picked):'';
     const imdb=validImdb(manual.imdb)?manual.imdb:(validImdb(raw.imdb_id)?raw.imdb_id:'');
     return {tmdb,id:tmdb||imdb,imdb};
@@ -86,7 +92,7 @@
   // A remote iframe cannot be interrogated for playback state. VidLink documents
   // postMessage PLAYER_EVENT, which is accepted only from the active iframe/origin.
   function watchEmbed(iframe, x, note) {
-    if(x.key!=='remote:vidlink')return;
+    if(!['remote:vidlink','remote:vidlinktv'].includes(x.key))return;
     let lastSave=0;
     const mal=String(current.mal_id), media=current;
     const handler=event=>{
@@ -111,7 +117,7 @@
       if(kind==='timeupdate'&&now-lastSave<5000)return;
       lastSave=now;
       history[mal]={mal_id:Number(mal),title:String(media.title||'Anime'),type:String(media.type||'TV'),
-        season:x.season,episode:x.episode,audio:x.audio,provider:'vidlink',seconds:Math.floor(elapsed),
+        season:x.season,episode:x.episode,audio:x.audio,provider:x.key.slice(7),seconds:Math.floor(elapsed),
         duration:Math.floor(duration),updatedAt:now};
       save(HISTORY,history);
       window.dispatchEvent(new Event('merope:watch-progress'));
@@ -121,11 +127,11 @@
   }
   function playbackUrl(x) {
     const url=safe(x.url);
-    if(!url||x.key!=='remote:vidlink'||!current)return url;
+    if(!url||!['remote:vidlink','remote:vidlinktv'].includes(x.key)||!current)return url;
     try{
       const link=new URL(url);
       const last=history[String(current.mal_id)];
-      if(last&&last.provider==='vidlink'&&last.season===x.season&&last.episode===x.episode&&last.audio===x.audio
+      if(last&&last.provider===x.key.slice(7)&&last.season===x.season&&last.episode===x.episode&&last.audio===x.audio
         &&Number(last.seconds)>10&&Number(last.duration)-Number(last.seconds)>15){
         link.searchParams.set('startAt',String(Math.floor(last.seconds)));
       }
@@ -247,6 +253,13 @@
     const message=el('p','anime-source-hint');
     const controls=el('div','anime-load-actions');controls.append(action);
     const playback=el('div','anime-player-options');playback.append(frame,controls,note,message);
+    const official=OFFICIAL_WATCH[mal];
+    if(official){
+      const officialLink=el('a','anime-external-link',official.name+' ↗');
+      officialLink.href=official.url;officialLink.target='_blank';officialLink.rel='noopener noreferrer';
+      const officialHint=el('p','anime-source-hint','If an embed reports this episode missing, use the official streaming option:');
+      officialHint.append(' ',officialLink);playback.append(officialHint);
+    }
     wrap.append(bar,playback);root.append(wrap);
     let active=[];
     const persist=(key)=>{prefs[mal]={season:Number(season.value),episode:Number(episode.value),audio:audio.value,provider:key||''};save(PREFS,prefs);};
@@ -269,7 +282,7 @@
       const extCount=active.filter(x=>x.remote&&x.available).length;
         message.textContent=`${extCount} external embed option${extCount===1?'':'s'} listed; actual video availability is unverified. VidLink Anime uses the MAL ID directly. `+
         (audio.value==='dub'?'If Dub is unavailable, VidLink may play Sub instead. ':'')+
-        (extCount<PROVIDERS.length?'Other providers need a confirmed TMDB/IMDb match. ':'')+
+        (extCount<PROVIDERS.length?'Some providers require TMDB/IMDb matching. ':'')+
         (movie?'':'Other providers may use different anime season numbering.');
       if(status[mal]==='connected'&&backend[mal]?.length)message.textContent+=' Optional personal media sources also detected.';
     }
