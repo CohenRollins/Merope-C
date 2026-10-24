@@ -1,4 +1,4 @@
-/* Merope-C Anime Hub v0.15.
+/* Merope-C Anime Hub v0.16.
  * Provider-operated iframe playback and direct user-configured MP4/WebM/HLS.
  * No scraping, stream extraction, access-control bypass, or open media proxy.
  * External players load only after a user explicitly selects Play.
@@ -202,15 +202,21 @@
     iframe.title=String(current.title||'Anime')+' player';iframe.loading='eager';
     iframe.allow='autoplay; fullscreen; picture-in-picture; encrypted-media';iframe.allowFullscreen=true;
     iframe.referrerPolicy='strict-origin-when-cross-origin';
-    iframe.sandbox='allow-scripts allow-same-origin allow-presentation allow-forms';
+    // Embed API Stream explicitly documents using an unsandboxed outer iframe.
+    // Limit this exception to its exact provider URL; all other embeds retain
+    // the restrictive sandbox. This provider remains a third-party security risk.
+    const nativeEmbedApi=x.key==='remote:embedstream' &&
+      new URL(url).origin==='https://watch.embed-api.stream' &&
+      new URL(url).pathname.startsWith('/embed/');
+    if(!nativeEmbedApi)iframe.sandbox='allow-scripts allow-same-origin allow-presentation allow-forms';
     frame.append(iframe);
     watchEmbed(iframe,x,note);
-    note.textContent='Opening external player…';
+    note.textContent='Loading external player page…';
     iframe.addEventListener('load',()=>{
-      if(frame.contains(iframe))note.textContent='External player page loaded. If playback does not start, try its Play control or open the source directly.';
+      if(frame.contains(iframe))note.textContent='Provider page loaded; its internal server may still be preparing the video. If stalled, use Retry or open the source directly.';
     });
     iframe.addEventListener('error',()=>{
-      if(frame.contains(iframe))note.textContent='Could not load the external player. Open the source directly to see its error or try another option.';
+      if(frame.contains(iframe))note.textContent='The external player failed to load. Retry or open the source directly to see the provider error.';
     });
     const ext=el('a','anime-external-link','Open source directly ↗');ext.href=url;ext.target='_blank';ext.rel='noopener noreferrer';note.append(' ',ext);
   }
@@ -261,9 +267,16 @@
       officialHint.append(' ',officialLink);playback.append(officialHint);
     }
     wrap.append(bar,playback);root.append(wrap);
-    let active=[];
+    let active=[], playbackStarted=false;
+    const updateAudioControl=()=>{
+      // Only VidLink's MAL endpoint honors the parent-page SUB/DUB selection.
+      // Other provider players manage their audio/subtitle tracks internally.
+      audio.disabled=Boolean(server.value)&&server.value!=='remote:vidlink'&&
+        !server.value.startsWith('library:');
+      audio.title=audio.disabled?'Choose language inside the selected provider player.':'';
+    };
     const persist=(key)=>{prefs[mal]={season:Number(season.value),episode:Number(episode.value),audio:audio.value,provider:key||''};save(PREFS,prefs);};
-    const resetFrame=()=>{stop();frame.parentElement?.querySelectorAll('.anime-native-tools').forEach(n=>n.remove());frame.replaceChildren(el('div','anime-embed-placeholder','Press Play episode to open the selected provider.'));note.textContent='';};
+    const resetFrame=()=>{stop();playbackStarted=false;action.textContent='▶ Play episode';frame.parentElement?.querySelectorAll('.anime-native-tools').forEach(n=>n.remove());frame.replaceChildren(el('div','anime-embed-placeholder','Press Play episode to open the selected provider.'));note.textContent='';};
     function populate(keepPrevious=true,resetPlayback=true){
       const old=keepPrevious?server.value:'';
       const s=Number(season.value),e=Number(episode.value);
@@ -272,10 +285,13 @@
       for(const item of active){const opt=el('option','',item.label);opt.value=item.key;opt.disabled=!item.available;server.append(opt);}
       const previous=old||defaults.provider;
       const chosen=active.find(x=>x.key===previous&&x.available);
-      // Open the documented remote anime embed by default, not a local-library server.
-      const first=active.find(x=>x.key==='remote:vidlink'&&x.available)||active.find(x=>x.available);
+      // Prefer the user's proven working provider whenever a title ID exists.
+      // Saved choices still win, and a missing mapping falls back to MAL embeds.
+      const first=active.find(x=>x.key==='remote:embedstream'&&x.available)||
+        active.find(x=>x.key==='remote:vidlink'&&x.available)||active.find(x=>x.available);
       if(chosen)server.value=chosen.key;
       else if(first)server.value=first.key;
+      updateAudioControl();
       const selected=active.find(x=>x.key===server.value&&x.available);
       action.disabled=!selected;
       if(resetPlayback)resetFrame();
@@ -285,13 +301,23 @@
         (extCount<PROVIDERS.length?'Some providers require TMDB/IMDb matching. ':'')+
         (movie?'':'Other providers may use different anime season numbering.');
       if(server.value==='remote:vidlinktv')message.textContent+=' The TV catalog uses separate episode numbering and its player controls audio; the Sub/Dub setting above does not apply. ';
+      if(server.value==='remote:embedstream')message.textContent+=' Embed API Stream controls subtitle, audio, and resume internally; the Sub/Dub preference above does not change it. Its servers may take time to start. This provider requires an unsandboxed iframe and may display pop-ups; do not enter passwords or payment details.';
       if(status[mal]==='connected'&&backend[mal]?.length)message.textContent+=' Optional personal media sources also detected.';
     }
-    for(const control of [season,episode,audio])control.addEventListener('change',()=>{populate(false);persist(server.value);});
-    server.addEventListener('change',()=>{persist(server.value);resetFrame();});
+    // Cabinet-style player continuity: retain the selected server when moving
+    // between episodes, and replace the active iframe after a user changes it.
+    // A fresh title still requires an explicit Play click.
+    for(const control of [season,episode,audio])control.addEventListener('change',()=>{
+      const resume=playbackStarted;populate(true);persist(server.value);
+      if(resume)action.click();
+    });
+    server.addEventListener('change',()=>{
+      const resume=playbackStarted;persist(server.value);updateAudioControl();resetFrame();
+      if(resume)action.click();
+    });
     action.addEventListener('click',()=>{
       const selected=active.find(x=>x.key===server.value&&x.available);if(!selected)return;
-      persist(selected.key);play(selected,frame,note);
+      persist(selected.key);playbackStarted=true;action.textContent='↻ Retry episode';play(selected,frame,note);
     });
     refreshSourceList=()=>populate(true,false);
     populate(true);
