@@ -268,6 +268,13 @@
     }
     wrap.append(bar,playback);root.append(wrap);
     let active=[], playbackStarted=false;
+    const updateAudioControl=()=>{
+      // Only VidLink's MAL endpoint honors the parent-page SUB/DUB selection.
+      // Other provider players manage their audio/subtitle tracks internally.
+      audio.disabled=Boolean(server.value)&&server.value!=='remote:vidlink'&&
+        !server.value.startsWith('library:');
+      audio.title=audio.disabled?'Choose language inside the selected provider player.':'';
+    };
     const persist=(key)=>{prefs[mal]={season:Number(season.value),episode:Number(episode.value),audio:audio.value,provider:key||''};save(PREFS,prefs);};
     const resetFrame=()=>{stop();playbackStarted=false;action.textContent='▶ Play episode';frame.parentElement?.querySelectorAll('.anime-native-tools').forEach(n=>n.remove());frame.replaceChildren(el('div','anime-embed-placeholder','Press Play episode to open the selected provider.'));note.textContent='';};
     function populate(keepPrevious=true,resetPlayback=true){
@@ -284,6 +291,7 @@
         active.find(x=>x.key==='remote:vidlink'&&x.available)||active.find(x=>x.available);
       if(chosen)server.value=chosen.key;
       else if(first)server.value=first.key;
+      updateAudioControl();
       const selected=active.find(x=>x.key===server.value&&x.available);
       action.disabled=!selected;
       if(resetPlayback)resetFrame();
@@ -304,7 +312,7 @@
       if(resume)action.click();
     });
     server.addEventListener('change',()=>{
-      const resume=playbackStarted;persist(server.value);resetFrame();
+      const resume=playbackStarted;persist(server.value);updateAudioControl();resetFrame();
       if(resume)action.click();
     });
     action.addEventListener('click',()=>{
