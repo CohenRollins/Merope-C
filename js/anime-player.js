@@ -284,6 +284,7 @@
         (audio.value==='dub'?'If Dub is unavailable, VidLink may play Sub instead. ':'')+
         (extCount<PROVIDERS.length?'Some providers require TMDB/IMDb matching. ':'')+
         (movie?'':'Other providers may use different anime season numbering.');
+      if(server.value==='remote:vidlinktv')message.textContent+=' The TV catalog uses separate episode numbering and its player controls audio; the Sub/Dub setting above does not apply. ';
       if(status[mal]==='connected'&&backend[mal]?.length)message.textContent+=' Optional personal media sources also detected.';
     }
     for(const control of [season,episode,audio])control.addEventListener('change',()=>{populate(false);persist(server.value);});
