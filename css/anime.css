@@ -183,3 +183,9 @@
    covering the source controls and making the panel appear as a black screen. */
 .anime-inline-player .anime-playback-stage{position:relative}
 .anime-inline-player .anime-playback-stage > .anime-real-frame{display:block;position:static;inset:auto;width:100%;height:100%;max-width:100%}
+
+
+/* Third-party player recovery actions remain visible even if the embed stalls. */
+.anime-load-actions{flex-wrap:wrap;align-items:center}
+.anime-load-actions > [hidden]{display:none!important}
+.anime-provider-direct{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}

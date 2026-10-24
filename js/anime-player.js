@@ -1,4 +1,4 @@
-/* Merope-C Anime Hub v0.16.
+/* Merope-C Anime Hub v0.17.
  * Provider-operated iframe playback and direct user-configured MP4/WebM/HLS.
  * No scraping, stream extraction, access-control bypass, or open media proxy.
  * External players load only after a user explicitly selects Play.
@@ -30,7 +30,7 @@
   const validImdb = x => /^tt\d{5,12}$/.test(String(x||''));
   let config={titles:{}}, local=stored(KEY), progress=stored(PROGRESS), prefs=stored(PREFS), history=stored(HISTORY);
   let overrides=stored(OVERRIDES), current=null, hls=null;
-  let teardownActive=null, refreshSourceList=null;
+  let teardownActive=null, refreshSourceList=null, embedHintTimer=null;
   const backend={}, status={}, identities={};
   const AUDIO=[['sub','Sub'],['dub','Dub'],['original','Original']];
   // Confirmed media-identity fallback when the mapping API has no TV match.
@@ -86,6 +86,7 @@
       .map(x=>({...x,season:Number(x.season),episode:Number(x.episode),audio:String(x.audio||'sub').toLowerCase(),type:String(x.type||'embed').toLowerCase(),label:String(x.label||'Library source').slice(0,80)}));
   }
   function stop() {
+    if(embedHintTimer!==null){clearTimeout(embedHintTimer);embedHintTimer=null;}
     if(teardownActive){teardownActive();teardownActive=null;}
     if(hls){try{hls.destroy();}catch{}hls=null;}
   }
@@ -101,6 +102,7 @@
       if(!msg||msg.type!=='PLAYER_EVENT'||!msg.data||typeof msg.data!=='object')return;
       const d=msg.data, kind=String(d.event||'');
       if(!['play','pause','seeked','ended','timeupdate'].includes(kind))return;
+      if(kind==='play'||kind==='timeupdate')iframe._meropePlaybackConfirmed=true;
       const elapsed=Number(d.currentTime), duration=Number(d.duration);
       if(kind==='ended'){
         if(history[mal]?.season===x.season&&history[mal]?.episode===x.episode){
@@ -213,12 +215,20 @@
     watchEmbed(iframe,x,note);
     note.textContent='Loading external player page…';
     iframe.addEventListener('load',()=>{
-      if(frame.contains(iframe))note.textContent='Provider page loaded; its internal server may still be preparing the video. If stalled, use Retry or open the source directly.';
+      if(frame.contains(iframe)&&!iframe._meropePlaybackConfirmed)
+        note.textContent='Provider page loaded. Its own video servers may still be loading; iframe load does not confirm playback.';
     });
     iframe.addEventListener('error',()=>{
-      if(frame.contains(iframe))note.textContent='The external player failed to load. Retry or open the source directly to see the provider error.';
+      if(frame.contains(iframe))note.textContent='Provider iframe failed. Use Open provider directly or try another source.';
     });
-    const ext=el('a','anime-external-link','Open source directly ↗');ext.href=url;ext.target='_blank';ext.rel='noopener noreferrer';note.append(' ',ext);
+    // Cross-origin iframe video readiness cannot be inspected. This is only
+    // a non-blocking, actionable hint, never an automatic failure verdict.
+    embedHintTimer=setTimeout(()=>{
+      embedHintTimer=null;
+      if(frame.contains(iframe)&&!iframe._meropePlaybackConfirmed){
+        note.textContent='If the video is still stuck, its provider may be stalled. Use Open provider directly to check it, Retry episode, or select a different source.';
+      }
+    },15000);
   }
   function optionsFor(mal,movie,season,episode,audio) {
     const result=[];
@@ -257,7 +267,11 @@
     const frame=el('div','anime-playback-stage'),note=el('p','anime-play-status');
     const action=el('button','button anime-load-embed','▶ Play episode');action.type='button';
     const message=el('p','anime-source-hint');
-    const controls=el('div','anime-load-actions');controls.append(action);
+    const controls=el('div','anime-load-actions');
+    const openDirect=el('a','button alt anime-provider-direct','↗ Open provider directly');
+    openDirect.target='_blank';openDirect.rel='noopener noreferrer';
+    openDirect.hidden=true;
+    controls.append(action,openDirect);
     const playback=el('div','anime-player-options');playback.append(frame,controls,note,message);
     const official=OFFICIAL_WATCH[mal];
     if(official){
@@ -276,7 +290,7 @@
       audio.title=audio.disabled?'Choose language inside the selected provider player.':'';
     };
     const persist=(key)=>{prefs[mal]={season:Number(season.value),episode:Number(episode.value),audio:audio.value,provider:key||''};save(PREFS,prefs);};
-    const resetFrame=()=>{stop();playbackStarted=false;action.textContent='▶ Play episode';frame.parentElement?.querySelectorAll('.anime-native-tools').forEach(n=>n.remove());frame.replaceChildren(el('div','anime-embed-placeholder','Press Play episode to open the selected provider.'));note.textContent='';};
+    const resetFrame=()=>{stop();playbackStarted=false;action.textContent='▶ Play episode';openDirect.hidden=true;openDirect.removeAttribute('href');frame.parentElement?.querySelectorAll('.anime-native-tools').forEach(n=>n.remove());frame.replaceChildren(el('div','anime-embed-placeholder','Press Play episode to open the selected provider.'));note.textContent='';};
     function populate(keepPrevious=true,resetPlayback=true){
       const old=keepPrevious?server.value:'';
       const s=Number(season.value),e=Number(episode.value);
@@ -317,7 +331,12 @@
     });
     action.addEventListener('click',()=>{
       const selected=active.find(x=>x.key===server.value&&x.available);if(!selected)return;
-      persist(selected.key);playbackStarted=true;action.textContent='↻ Retry episode';play(selected,frame,note);
+      persist(selected.key);playbackStarted=true;action.textContent='↻ Retry episode';
+      const direct=safe(selected.url);
+      openDirect.hidden=!selected.remote||!direct;
+      if(direct)openDirect.href=direct;
+      else openDirect.removeAttribute('href');
+      play(selected,frame,note);
     });
     refreshSourceList=()=>populate(true,false);
     populate(true);
