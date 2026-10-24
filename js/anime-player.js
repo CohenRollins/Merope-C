@@ -1,7 +1,7 @@
-/* Merope-C Anime Hub v0.12.
- * A source selector for local/Jellyfin media and ordinary documented iframe embeds.
- * No third-party stream extraction, access-control bypass, or video proxying.
- * External embeds are only loaded after the visitor clicks Play.
+/* Merope-C Anime Hub v0.13.
+ * Provider-operated iframe playback and direct user-configured MP4/WebM/HLS.
+ * No scraping, stream extraction, access-control bypass, or open media proxy.
+ * External players load only after a user explicitly selects Play.
  */
 (() => {
   'use strict';
@@ -35,8 +35,8 @@
   const AUDIO=[['sub','Sub'],['dub','Dub'],['original','Original']];
 
   const PROVIDERS = [
-    {id:'vidlink',label:'VidLink Anime',build:m=>`https://vidlink.pro/anime/${m.mal}/${m.episode}/${m.audio==='dub'?'dub':'sub'}?fallback=true`},
-    {id:'videasy',label:'Videasy',build:m=>m.id && `https://player.videasy.ws/embed/${m.movie?'movie':'tv'}/${m.id}${m.movie?'':`/${m.season}/${m.episode}`}`},
+    // Provider-documented anime embed; this is an iframe, not a hosted or verified stream.
+    {id:'vidlink',label:'VidLink Anime (embed)',build:m=>`https://vidlink.pro/anime/${m.mal}/${m.episode}/${m.audio==='dub'?'dub':'sub'}?primaryColor=5CA6E8&secondaryColor=172D45&autoplay=false`},
     {id:'vidsrc',label:'VidSrc',build:m=>m.id && `https://vidsrc.sh/embed/${m.movie?'movie':'tv'}/${m.id}${m.movie?'':`/${m.season}/${m.episode}`}`},
     {id:'cinesrc',label:'CineSrc',build:m=>m.tmdb && `https://cinesrc.st/embed/${m.movie?'movie':'tv'}/${m.tmdb}${m.movie?'':`?s=${m.season}&e=${m.episode}`}`},
     {id:'screenscape',label:'ScreenScape',build:m=>m.id && `https://nxsha.screenscape.me/embed?${validImdb(m.id)?'imdb':'tmdb'}=${m.id}&type=${m.movie?'movie':'tv'}${m.movie?'':`&s=${m.season}&e=${m.episode}`}`},
@@ -83,9 +83,58 @@
     if(teardownActive){teardownActive();teardownActive=null;}
     if(hls){try{hls.destroy();}catch{}hls=null;}
   }
+  // A remote iframe cannot be interrogated for playback state. VidLink documents
+  // postMessage PLAYER_EVENT, which is accepted only from the active iframe/origin.
+  function watchEmbed(iframe, x, note) {
+    if(x.key!=='remote:vidlink')return;
+    let lastSave=0;
+    const mal=String(current.mal_id), media=current;
+    const handler=event=>{
+      if(event.origin!=='https://vidlink.pro'||event.source!==iframe.contentWindow)return;
+      const msg=event.data;
+      if(!msg||msg.type!=='PLAYER_EVENT'||!msg.data||typeof msg.data!=='object')return;
+      const d=msg.data, kind=String(d.event||'');
+      if(!['play','pause','seeked','ended','timeupdate'].includes(kind))return;
+      const elapsed=Number(d.currentTime), duration=Number(d.duration);
+      if(kind==='ended'){
+        if(history[mal]?.season===x.season&&history[mal]?.episode===x.episode){
+          delete history[mal];save(HISTORY,history);
+          window.dispatchEvent(new Event('merope:watch-progress'));
+        }
+        note.textContent='Episode finished.';
+        return;
+      }
+      if(kind==='play')note.textContent='Player reports video playback.';
+      if(!Number.isFinite(elapsed)||elapsed<0||!Number.isFinite(duration)||duration<=0||elapsed>duration+3)return;
+      if(elapsed<5)return;
+      const now=Date.now();
+      if(kind==='timeupdate'&&now-lastSave<5000)return;
+      lastSave=now;
+      history[mal]={mal_id:Number(mal),title:String(media.title||'Anime'),type:String(media.type||'TV'),
+        season:x.season,episode:x.episode,audio:x.audio,seconds:Math.floor(elapsed),
+        duration:Math.floor(duration),updatedAt:now};
+      save(HISTORY,history);
+      window.dispatchEvent(new Event('merope:watch-progress'));
+    };
+    window.addEventListener('message',handler);
+    teardownActive=()=>window.removeEventListener('message',handler);
+  }
+  function playbackUrl(x) {
+    const url=safe(x.url);
+    if(!url||x.key!=='remote:vidlink'||!current)return url;
+    try{
+      const link=new URL(url);
+      const last=history[String(current.mal_id)];
+      if(last&&last.season===x.season&&last.episode===x.episode&&last.audio===x.audio
+        &&Number(last.seconds)>10&&Number(last.duration)-Number(last.seconds)>15){
+        link.searchParams.set('startAt',String(Math.floor(last.seconds)));
+      }
+      return link.href;
+    }catch{return url;}
+  }
   function play(x, frame, note) {
     stop();frame.replaceChildren();note.textContent='';
-    const url=safe(x.url);if(!url){note.textContent='No usable URL for this source.';return;}
+    const url=playbackUrl(x);if(!url){note.textContent='No usable URL for this source.';return;}
     if(['mp4','webm','hls'].includes(x.type)) {
       const video=el('video','anime-real-video');video.controls=true;video.playsInline=true;video.preload='metadata';
       frame.append(video);
@@ -149,7 +198,8 @@
     iframe.referrerPolicy='strict-origin-when-cross-origin';
     iframe.sandbox='allow-scripts allow-same-origin allow-presentation allow-forms';
     frame.append(iframe);
-    note.textContent='Third-party player loaded. If it stays blank, try another source. Some players block embedding.';
+    watchEmbed(iframe,x,note);
+    note.textContent='Opening provider player. A loaded frame does not confirm a playable episode.';
     const ext=el('a','anime-external-link','Open source directly ↗');ext.href=url;ext.target='_blank';ext.rel='noopener noreferrer';note.append(' ',ext);
   }
   function optionsFor(mal,movie,season,episode,audio) {
@@ -203,7 +253,8 @@
       for(const item of active){const opt=el('option','',item.label);opt.value=item.key;opt.disabled=!item.available;server.append(opt);}
       const previous=old||defaults.provider;
       const chosen=active.find(x=>x.key===previous&&x.available);
-      const first=active.find(x=>x.available);
+      // Open the documented remote anime embed by default, not a local-library server.
+      const first=active.find(x=>x.key==='remote:vidlink'&&x.available)||active.find(x=>x.available);
       if(chosen)server.value=chosen.key;
       else if(first)server.value=first.key;
       const selected=active.find(x=>x.key===server.value&&x.available);
@@ -211,11 +262,10 @@
       if(resetPlayback)resetFrame();
       const extCount=active.filter(x=>x.remote&&x.available).length;
       const isMap=identities[mal] && identities[mal].status==='ok';
-      message.textContent=`${extCount} external player option${extCount===1?'':'s'} configured. Availability has not been verified. `+
+      message.textContent=`${extCount} external embed option${extCount===1?'':'s'} listed (not verified playable). `+
         (extCount<PROVIDERS.length?(isMap?'Some services need a different title ID.':'TMDB mapping unavailable or still loading. VidLink uses the MAL ID directly.'):'')+
         (movie?'':' TV providers may number anime seasons differently.');
-      if(status[mal]==='connected')message.textContent+= (backend[mal]?.length ? ' Polaris media bridge returned source entries; playback is not yet verified.' : ' Polaris media bridge responded but has no matched video sources.');
-      if(status[mal]==='unavailable')message.textContent+=' Polaris media bridge is unavailable.';
+      if(status[mal]==='connected'&&backend[mal]?.length)message.textContent+=' Optional personal media sources also detected.';
     }
     for(const control of [season,episode,audio])control.addEventListener('change',()=>{populate(false);persist(server.value);});
     server.addEventListener('change',()=>{persist(server.value);resetFrame();});
