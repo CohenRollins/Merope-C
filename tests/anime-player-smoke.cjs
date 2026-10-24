@@ -85,7 +85,7 @@ assert.ok(openDirect.href,'iframe load cannot remove the direct link');
 const hint=timers[timers.length-1];
 assert.equal(typeof hint,'function','stall feedback timer exists');
 hint();
-assert.match(note.textContent,/Still waiting\?/,'shows a non-blocking stall recovery hint');
+assert.match(note.textContent,/If the video is still stuck/,'shows a non-blocking stall recovery hint');
 assert.match(first.src,/^https:\/\/watch\.embed-api\.stream\/embed\/tv\/65942\/1\/1$/);
 assert.equal(first.sandbox,undefined,'Embed API requires unsandboxed outer iframe');
 assert.equal(button.textContent,'↻ Retry episode');
