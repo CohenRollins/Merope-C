@@ -1,4 +1,4 @@
-/* Merope-C Anime Hub v0.13.
+/* Merope-C Anime Hub v0.14.
  * Provider-operated iframe playback and direct user-configured MP4/WebM/HLS.
  * No scraping, stream extraction, access-control bypass, or open media proxy.
  * External players load only after a user explicitly selects Play.
@@ -36,7 +36,7 @@
 
   const PROVIDERS = [
     // Provider-documented anime embed; this is an iframe, not a hosted or verified stream.
-    {id:'vidlink',label:'VidLink Anime (embed)',build:m=>`https://vidlink.pro/anime/${m.mal}/${m.episode}/${m.audio==='dub'?'dub':'sub'}?primaryColor=5CA6E8&secondaryColor=172D45&autoplay=false`},
+    {id:'vidlink',label:'VidLink Anime (embed)',build:m=>`https://vidlink.pro/anime/${m.mal}/${m.episode}/${m.audio==='dub'?'dub':'sub'}?primaryColor=5CA6E8&secondaryColor=172D45&autoplay=true&fallback=true`},
     {id:'vidsrc',label:'VidSrc',build:m=>m.id && `https://vidsrc.sh/embed/${m.movie?'movie':'tv'}/${m.id}${m.movie?'':`/${m.season}/${m.episode}`}`},
     {id:'cinesrc',label:'CineSrc',build:m=>m.tmdb && `https://cinesrc.st/embed/${m.movie?'movie':'tv'}/${m.tmdb}${m.movie?'':`?s=${m.season}&e=${m.episode}`}`},
     {id:'screenscape',label:'ScreenScape',build:m=>m.id && `https://nxsha.screenscape.me/embed?${validImdb(m.id)?'imdb':'tmdb'}=${m.id}&type=${m.movie?'movie':'tv'}${m.movie?'':`&s=${m.season}&e=${m.episode}`}`},
@@ -199,7 +199,13 @@
     iframe.sandbox='allow-scripts allow-same-origin allow-presentation allow-forms';
     frame.append(iframe);
     watchEmbed(iframe,x,note);
-    note.textContent='Opening provider player. A loaded frame does not confirm a playable episode.';
+    note.textContent='Opening external player…';
+    iframe.addEventListener('load',()=>{
+      if(frame.contains(iframe))note.textContent='External player page loaded. If playback does not start, try its Play control or open the source directly.';
+    });
+    iframe.addEventListener('error',()=>{
+      if(frame.contains(iframe))note.textContent='Could not load the external player. Open the source directly to see its error or try another option.';
+    });
     const ext=el('a','anime-external-link','Open source directly ↗');ext.href=url;ext.target='_blank';ext.rel='noopener noreferrer';note.append(' ',ext);
   }
   function optionsFor(mal,movie,season,episode,audio) {
@@ -237,14 +243,14 @@
     if(['sub','dub','original'].includes(defaults.audio))audio.value=defaults.audio;
     const server=makeSelect('Video source',[]);
     const frame=el('div','anime-playback-stage'),note=el('p','anime-play-status');
-    const action=el('button','button anime-load-embed','▶ Load selected player');action.type='button';
+    const action=el('button','button anime-load-embed','▶ Play episode');action.type='button';
     const message=el('p','anime-source-hint');
     const controls=el('div','anime-load-actions');controls.append(action);
     const playback=el('div','anime-player-options');playback.append(frame,controls,note,message);
     wrap.append(bar,playback);root.append(wrap);
     let active=[];
     const persist=(key)=>{prefs[mal]={season:Number(season.value),episode:Number(episode.value),audio:audio.value,provider:key||''};save(PREFS,prefs);};
-    const resetFrame=()=>{stop();frame.parentElement?.querySelectorAll('.anime-native-tools').forEach(n=>n.remove());frame.replaceChildren(el('div','anime-embed-placeholder','Choose a source, then click Load selected player.'));note.textContent='';};
+    const resetFrame=()=>{stop();frame.parentElement?.querySelectorAll('.anime-native-tools').forEach(n=>n.remove());frame.replaceChildren(el('div','anime-embed-placeholder','Press Play episode to open the selected provider.'));note.textContent='';};
     function populate(keepPrevious=true,resetPlayback=true){
       const old=keepPrevious?server.value:'';
       const s=Number(season.value),e=Number(episode.value);
@@ -261,10 +267,10 @@
       action.disabled=!selected;
       if(resetPlayback)resetFrame();
       const extCount=active.filter(x=>x.remote&&x.available).length;
-      const isMap=identities[mal] && identities[mal].status==='ok';
-      message.textContent=`${extCount} external embed option${extCount===1?'':'s'} listed (not verified playable). `+
-        (extCount<PROVIDERS.length?(isMap?'Some services need a different title ID.':'TMDB mapping unavailable or still loading. VidLink uses the MAL ID directly.'):'')+
-        (movie?'':' TV providers may number anime seasons differently.');
+        message.textContent=`${extCount} external embed option${extCount===1?'':'s'} listed; actual video availability is unverified. VidLink Anime uses the MAL ID directly. `+
+        (audio.value==='dub'?'If Dub is unavailable, VidLink may play Sub instead. ':'')+
+        (extCount<PROVIDERS.length?'Other providers need a confirmed TMDB/IMDb match. ':'')+
+        (movie?'':'Other providers may use different anime season numbering.');
       if(status[mal]==='connected'&&backend[mal]?.length)message.textContent+=' Optional personal media sources also detected.';
     }
     for(const control of [season,episode,audio])control.addEventListener('change',()=>{populate(false);persist(server.value);});
