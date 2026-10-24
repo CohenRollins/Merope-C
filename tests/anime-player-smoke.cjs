@@ -26,6 +26,7 @@ class Element {
   dispatchEvent(event) { for(const fn of this.listeners[event.type]??[])fn(event); }
   click() { this.dispatchEvent({type:'click'}); }
   setAttribute(key,val) {this.attributes[key]=val;}
+  removeAttribute(key) {delete this.attributes[key];delete this[key];}
   querySelectorAll() {return [];}
   contains(target) {return target===this||this.children.some(node=>node?.contains?.(target));}
   remove() {}
@@ -35,7 +36,9 @@ class Element {
   set value(value) {this._value=value;}
 }
 const descendants = node => [node,...node.children.flatMap(x=>x instanceof Element?descendants(x):[])];
-const root=new Element('div'),storage=new Map(),windowListeners={};
+const root=new Element('div'),storage=new Map(),windowListeners={},timers=[];
+const setTimeout=fn=>{timers.push(fn);return timers.length;};
+const clearTimeout=id=>{timers[id-1]=null;};
 const window={
   addEventListener(type,fn){(windowListeners[type]??=[]).push(fn);},
   removeEventListener(type,fn){windowListeners[type]=(windowListeners[type]??[]).filter(x=>x!==fn);},
@@ -56,7 +59,7 @@ const fetch=async url=>({
 });
 const source=fs.readFileSync(path.resolve(__dirname,'../js/anime-player.js'),'utf8');
 vm.runInNewContext(source,{
-  window,document,localStorage,fetch,URL,
+  window,document,localStorage,fetch,URL,setTimeout,clearTimeout,
   location:{href:'https://merope-c.com/pages/anime.html'},
   Event:class{constructor(type){this.type=type;}}
 },{filename:'anime-player.js'});
@@ -73,12 +76,23 @@ assert.equal(select.value,'remote:embedstream','prefer provider that played epis
 assert.equal(find(el=>el.tagName==='iframe'),undefined,'do not load iframe until click');
 button.click();
 const first=find(el=>el.tagName==='iframe');
+const openDirect=find(el=>el.tagName==='a'&&el.className?.includes('anime-provider-direct'));
+const note=find(el=>el.className==='anime-play-status');
+assert.ok(openDirect&&!openDirect.hidden,'direct-provider link visible after play');
+assert.equal(openDirect.href,first.src,'direct link uses the active provider');
+first.dispatchEvent({type:'load'});
+assert.ok(openDirect.href,'iframe load cannot remove the direct link');
+const hint=timers[timers.length-1];
+assert.equal(typeof hint,'function','stall feedback timer exists');
+hint();
+assert.match(note.textContent,/Still waiting\?/,'shows a non-blocking stall recovery hint');
 assert.match(first.src,/^https:\/\/watch\.embed-api\.stream\/embed\/tv\/65942\/1\/1$/);
 assert.equal(first.sandbox,undefined,'Embed API requires unsandboxed outer iframe');
 assert.equal(button.textContent,'↻ Retry episode');
 episodeInputs[1].value='2';
 episodeInputs[1].dispatchEvent({type:'change'});
 const second=find(el=>el.tagName==='iframe');
+assert.equal(openDirect.href,second.src,'direct link follows episode change');
 assert.notEqual(first,second,'change episode reloads the iframe');
 assert.match(second.src,/\/65942\/1\/2$/);
 assert.equal(select.value,'remote:embedstream','do not switch providers between episodes');
@@ -86,6 +100,7 @@ select.value='remote:vidlink';
 select.dispatchEvent({type:'change'});
 const other=find(el=>el.tagName==='iframe');
 assert.ok(other.sandbox,'untrusted provider remains sandboxed');
+assert.equal(openDirect.href,other.src,'direct link updates when provider changes');
 assert.equal(audioSelect.disabled,false,'VidLink anime restores SUB/DUB selector');
 assert.match(other.src,/\/anime\/31240\/2\/sub/);
 window.meropePlayer.close();
