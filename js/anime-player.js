@@ -269,7 +269,7 @@
     wrap.append(bar,playback);root.append(wrap);
     let active=[], playbackStarted=false;
     const persist=(key)=>{prefs[mal]={season:Number(season.value),episode:Number(episode.value),audio:audio.value,provider:key||''};save(PREFS,prefs);};
-    const resetFrame=()=>{stop();playbackStarted=false;frame.parentElement?.querySelectorAll('.anime-native-tools').forEach(n=>n.remove());frame.replaceChildren(el('div','anime-embed-placeholder','Press Play episode to open the selected provider.'));note.textContent='';};
+    const resetFrame=()=>{stop();playbackStarted=false;action.textContent='▶ Play episode';frame.parentElement?.querySelectorAll('.anime-native-tools').forEach(n=>n.remove());frame.replaceChildren(el('div','anime-embed-placeholder','Press Play episode to open the selected provider.'));note.textContent='';};
     function populate(keepPrevious=true,resetPlayback=true){
       const old=keepPrevious?server.value:'';
       const s=Number(season.value),e=Number(episode.value);
@@ -293,7 +293,7 @@
         (extCount<PROVIDERS.length?'Some providers require TMDB/IMDb matching. ':'')+
         (movie?'':'Other providers may use different anime season numbering.');
       if(server.value==='remote:vidlinktv')message.textContent+=' The TV catalog uses separate episode numbering and its player controls audio; the Sub/Dub setting above does not apply. ';
-      if(server.value==='remote:embedstream')message.textContent+=' Embed API Stream controls subtitle and audio options internally; the Sub/Dub preference above does not change it. Its internal servers may take time to start.';
+      if(server.value==='remote:embedstream')message.textContent+=' Embed API Stream controls subtitle, audio, and resume internally; the Sub/Dub preference above does not change it. Its servers may take time to start. This provider requires an unsandboxed iframe and may display pop-ups; do not enter passwords or payment details.';
       if(status[mal]==='connected'&&backend[mal]?.length)message.textContent+=' Optional personal media sources also detected.';
     }
     // Cabinet-style player continuity: retain the selected server when moving
@@ -309,7 +309,7 @@
     });
     action.addEventListener('click',()=>{
       const selected=active.find(x=>x.key===server.value&&x.available);if(!selected)return;
-      persist(selected.key);playbackStarted=true;play(selected,frame,note);
+      persist(selected.key);playbackStarted=true;action.textContent='↻ Retry episode';play(selected,frame,note);
     });
     refreshSourceList=()=>populate(true,false);
     populate(true);
