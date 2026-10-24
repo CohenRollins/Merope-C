@@ -111,7 +111,7 @@
       if(kind==='timeupdate'&&now-lastSave<5000)return;
       lastSave=now;
       history[mal]={mal_id:Number(mal),title:String(media.title||'Anime'),type:String(media.type||'TV'),
-        season:x.season,episode:x.episode,audio:x.audio,seconds:Math.floor(elapsed),
+        season:x.season,episode:x.episode,audio:x.audio,provider:'vidlink',seconds:Math.floor(elapsed),
         duration:Math.floor(duration),updatedAt:now};
       save(HISTORY,history);
       window.dispatchEvent(new Event('merope:watch-progress'));
@@ -125,7 +125,7 @@
     try{
       const link=new URL(url);
       const last=history[String(current.mal_id)];
-      if(last&&last.season===x.season&&last.episode===x.episode&&last.audio===x.audio
+      if(last&&last.provider==='vidlink'&&last.season===x.season&&last.episode===x.episode&&last.audio===x.audio
         &&Number(last.seconds)>10&&Number(last.duration)-Number(last.seconds)>15){
         link.searchParams.set('startAt',String(Math.floor(last.seconds)));
       }
