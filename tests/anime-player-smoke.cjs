@@ -65,7 +65,7 @@ window.meropePlayer.open(title);
 const find=predicate=>descendants(root).find(predicate);
 const select=find(el=>el.tagName==='select'&&el.children.some(o=>o?.textContent==='Embed API Stream'));
 const button=find(el=>el.tagName==='button'&&el.textContent==='▶ Play episode');
-const episodeInputs=descendants(root).filter(el=>el.tagName==='input'&&el.type==='number');
+const episodeInputs=descendants(root).filter(el=>el.tagName==='input'&&el.className==='anime-number-field');
 const audioSelect=descendants(root).find(el=>el.tagName==='select'&&el.children.some(o=>o?.value==='dub'));
 assert.equal(audioSelect?.disabled,true,'external provider manages its own audio');
 assert.ok(select&&button&&episodeInputs.length===2,'expected player controls');
