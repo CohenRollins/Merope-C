@@ -226,7 +226,7 @@
     embedHintTimer=setTimeout(()=>{
       embedHintTimer=null;
       if(frame.contains(iframe)&&!iframe._meropePlaybackConfirmed){
-        note.textContent='Still waiting? The external provider may be stalled. Use Open provider directly to check it, Retry episode, or select a different source.';
+        note.textContent='If the video is still stuck, its provider may be stalled. Use Open provider directly to check it, Retry episode, or select a different source.';
       }
     },15000);
   }
